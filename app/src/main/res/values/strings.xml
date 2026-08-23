@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Names, pure formats, and the symbol glyphs. A language is called the same thing in
+         every locale, a percentage has nothing to translate, and the glyphs stand for keys:
+         an abbreviation that changed with the system language would be a second code table to
+         learn on a keyboard whose entire cost is memorisation. -->
+    <string name="app_name" translatable="false">atv-h4</string>
+    <string name="ime_name" translatable="false">H4-Writer</string>
+    <string name="subtype_pl" translatable="false">Polski</string>
+    <string name="subtype_en" translatable="false">English</string>
+    <string name="language_pl" translatable="false">Polski</string>
+    <string name="language_en" translatable="false">English</string>
+    <string name="capture_no_key" translatable="false">—</string>
+    <string name="strip_dead_branch" translatable="false">—</string>
+    <string name="symbol_space" translatable="false">_</string>
+    <string name="symbol_backspace" translatable="false">DEL</string>
+    <string name="symbol_caret_left" translatable="false">◄</string>
+    <string name="symbol_caret_right" translatable="false">►</string>
+    <string name="symbol_language" translatable="false">LANG</string>
+    <string name="symbol_layer" translatable="false">123</string>
+    <string name="update_working" translatable="false">…</string>
+    <string name="update_percent" translatable="false">%1$d%%</string>
+    <string name="update_installing_headline" translatable="false">%1$d kB</string>
+    <string name="settings_source_url" translatable="false">github.com/vagrant326/atv-h4</string>
+
+    <string name="update_name">H4-Writer updates</string>
+
+    <string name="hint_branches">Cross</string>
+    <string name="hint_branches_description">The four directions laid out as the d-pad, each saying what it leads to. Clearest, and the tallest.</string>
+    <string name="hint_inline">One line</string>
+    <string name="hint_inline_description">The same four branches on a single row.</string>
+    <string name="hint_off">Off</string>
+    <string name="hint_off_description">Nothing. Turn this off once your thumb knows the codes — until then there is no other reminder, because nothing is printed on the remote.</string>
+
+    <string name="settings_character_set">Characters</string>
+    <string name="settings_character_set_warning">Changing this rebuilds every code. Whatever you have learnt moves.</string>
+    <string name="set_full">Everything</string>
+    <string name="set_full_description">Letters, space, punctuation and digits in one tree. Nothing needs a mode switch.</string>
+    <string name="set_letters">Letters only</string>
+    <string name="set_letters_description">Letters and space. Shorter codes for the letters; punctuation and digits move to the digit layer.</string>
+
+    <string name="settings_tree_scope">Code table</string>
+    <string name="scope_shared">One for all languages</string>
+    <string name="scope_shared_description">One table to learn, and no language to switch — so it can never be in the wrong position. Costs under two hundredths of a press per character.</string>
+    <string name="scope_per_language">One per language</string>
+    <string name="scope_per_language_description">Every language gets codes fitted to its own letter frequencies. Marginally fewer presses, two tables to learn, and a switch that can be wrong — a wrong-language press types a real character, so the mistake looks like a typo.</string>
+
+    <string name="binding_delete">Delete button</string>
+    <string name="binding_delete_prompt">Press the button you want for deleting</string>
+    <string name="binding_delete_fallback">Delete is already a code, so this is optional. It is still the one most worth assigning: deleting is the correction you make most, and a button costs one press instead of two or three.</string>
+    <string name="binding_language">Language button</string>
+    <string name="binding_language_prompt">Press the button you want for switching language</string>
+    <string name="binding_language_fallback">Optional. The language switch is a code too, and holding this button opens the list instead of cycling.</string>
+    <string name="binding_layer">Digits button</string>
+    <string name="binding_layer_prompt">Press the button you want for switching to digits and back</string>
+    <string name="binding_layer_fallback">Optional. The digit layer is a code too, and a field that asks for numbers opens in it by itself.</string>
+
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_source">Source at %1$s</string>
+    <string name="settings_section_keyboard">Keyboard</string>
+    <string name="settings_section_codes">Codes</string>
+    <string name="settings_section_languages">Languages</string>
+    <string name="settings_section_buttons">Buttons</string>
+    <string name="settings_section_system">System</string>
+    <string name="settings_section_updates">Updates</string>
+    <string name="settings_section_typing">How to type</string>
+    <string name="settings_section_try">Try it</string>
+    <string name="settings_key_hint">Guide</string>
+    <string name="settings_codes">Show the code table</string>
+    <string name="settings_codes_note">Every character and what it costs, shortest first. The first dozen cover most of what anyone types.</string>
+    <string name="settings_language_note">The language switch cycles through the ones you tick, in this order.</string>
+    <string name="settings_language_minimum">At least one language has to stay on.</string>
+    <string name="settings_buttons_note">Remotes disagree about which buttons exist and about what they report. Press the button you want and it gets recorded. Nothing here is required: deleting, the caret, the language and the digit layer are all codes on the d-pad. Number keys can be assigned freely — this keyboard never reads them.</string>
+    <string name="settings_binding_row">%1$s: %2$s</string>
+    <string name="settings_binding_unset">not set</string>
+    <string name="settings_system_keyboard">Android keyboard settings</string>
+    <string name="settings_system_keyboard_note">Leaves this app. Enable or switch the active keyboard there.</string>
+    <string name="settings_check_updates">Check for updates</string>
+    <string name="settings_updates_note">The only thing here that uses the network. It runs in a separate process, only when you press it, and sends nothing. What you type never leaves the device.</string>
+    <string name="settings_typing_note">Every character is a short run of d-pad presses — one or two for the common ones, four or five for the rare. The guide above the field shows what each direction leads to from where you are, so you never have to know a code in advance.\n\nCentre submits. BACK abandons a half-finished character, and closes the keyboard when there is nothing to abandon.\n\nDelete, the caret, the language switch and the digit layer are characters too: they sit in the same tree and are reached the same way. So the whole keyboard works on a remote with nothing but a d-pad, a centre button and BACK.</string>
+    <string name="settings_scratch_hint">Type here</string>
+    <string name="settings_scratch_note">Focus this field to bring the keyboard up. Nothing here is saved.</string>
+
+    <string name="codes_title">Code table</string>
+    <string name="codes_intro_shared">One table for every language you have on, built from their letter frequencies together. Frequent characters are cheap, rare ones are not.</string>
+    <string name="codes_intro_per_language">One table per language, built from that language\'s own letter frequencies. Frequent characters are cheap, rare ones are not.</string>
+    <string name="codes_language">Language</string>
+    <string name="codes_summary">%1$d characters, longest code %2$d presses, %3$.2f presses per character on average.</string>
+    <string name="codes_first_press">FIRST PRESS LEADS TO</string>
+    <string name="codes_back">BACK returns to settings.</string>
+    <string name="codes_space">space</string>
+    <string name="codes_backspace">delete</string>
+    <string name="codes_caret_left">caret left</string>
+    <string name="codes_caret_right">caret right</string>
+    <string name="codes_language_symbol">language</string>
+    <string name="codes_layer">digits</string>
+    <plurals name="codes_presses">
+        <item quantity="one">%1$d PRESS</item>
+        <item quantity="other">%1$d PRESSES</item>
+    </plurals>
+
+    <string name="capture_choose">Choose button</string>
+    <string name="capture_save">Save</string>
+    <string name="capture_clear">Clear</string>
+    <string name="capture_state_none">NO SELECTION</string>
+    <string name="capture_state_listening">PRESS A BUTTON</string>
+    <string name="capture_state_selected">SELECTED</string>
+    <string name="capture_state_unusable">CANNOT BE USED</string>
+    <string name="capture_state_saved">SAVED</string>
+    <string name="capture_waiting">Waiting…</string>
+    <string name="capture_code">code %1$d</string>
+    <string name="capture_reserved">The keyboard needs this button for typing, so it cannot be assigned. Choose again and press a different one.</string>
+    <string name="capture_assigned_label">ASSIGNED NOW</string>
+    <string name="capture_assigned_none">Nothing</string>
+    <string name="capture_assigned_value">%1$s  ·  code %2$d</string>
+    <string name="capture_footer_idle">BACK returns to settings.</string>
+    <string name="capture_footer_listening">The next button you press is the one taken. BACK cancels.</string>
+    <string name="capture_footer_saved">Saved. BACK returns to settings.</string>
+
+    <string name="update_title">Updates</string>
+    <string name="update_subtitle">H4-Writer installs from its GitHub releases.</string>
+    <string name="update_state_checking">CHECKING</string>
+    <string name="update_state_uptodate">UP TO DATE</string>
+    <string name="update_state_available">AVAILABLE</string>
+    <string name="update_state_none">NOTHING PUBLISHED</string>
+    <string name="update_state_failed">COULD NOT CHECK</string>
+    <string name="update_state_downloading">DOWNLOADING</string>
+    <string name="update_state_installing">INSTALLING</string>
+    <string name="update_state_done">DONE</string>
+    <string name="update_state_error">FAILED</string>
+    <string name="update_state_permission">PERMISSION NEEDED</string>
+    <string name="update_uptodate_body">Nothing newer has been released.</string>
+    <string name="update_none_headline">No releases</string>
+    <string name="update_none_body">This repository has no releases yet.</string>
+    <string name="update_failed_headline">Check failed</string>
+    <string name="update_available_body">Installed %1$s.</string>
+    <string name="update_download">Download and install</string>
+    <string name="update_check_again">Check again</string>
+    <string name="update_try_again">Try again</string>
+    <string name="update_busy">Working…</string>
+    <string name="update_downloading_failed">Download failed</string>
+    <string name="update_installing_body">Handing the file to the system installer.</string>
+    <string name="update_installed_headline">Installed</string>
+    <string name="update_installed_body">Android stops an app when it replaces it, so this screen will close. The keyboard itself keeps working — reopen the app only to change settings.</string>
+    <string name="update_install_failed">Install failed</string>
+    <string name="update_install_status">status %1$d\n%2$s</string>
+    <string name="update_no_detail">no detail</string>
+    <string name="update_start_failed">Could not start the install</string>
+    <string name="update_no_dialog_headline">No confirmation dialog</string>
+    <string name="update_no_dialog_body">The system asked for confirmation but did not say what to show.</string>
+    <string name="update_dialog_failed">Could not open the dialog</string>
+    <string name="update_problem">PROBLEM</string>
+    <string name="update_permission_headline">Allow installing</string>
+    <string name="update_permission_body">Android needs your permission for this app to install packages.</string>
+    <string name="update_permission_open">Open the permission screen</string>
+    <string name="update_install">Install</string>
+    <string name="update_installed_label">INSTALLED</string>
+    <string name="update_privacy">Checked only when you press it. One request for the version, one for the file, nothing sent. What you type never leaves the device.</string>
+    <string name="update_back">BACK returns to settings.</string>
+
+    <string name="binding_trigger">Trigger key</string>
+    <string name="binding_trigger_prompt">Press the button you want for raising the keyboard anywhere</string>
+    <string name="binding_trigger_fallback">The one button that cannot be a code, because the keyboard is not on screen yet. Unassigned by default, and the only key it listens for while hidden.</string>
+
+    <string name="settings_section_support">Support</string>
+    <string name="settings_support">Support this keyboard</string>
+    <string name="support_title">Support this keyboard</string>
+    <string name="support_free">H4-Writer is open source and MIT licensed. It is free, it stays free, and nothing in it is locked away for people who do not pay.</string>
+    <string name="support_thanks">If it has saved you a few thousand trips around an on-screen grid, you can buy me a coffee.</string>
+    <string name="support_scan">Scan with your phone</string>
+    <string name="support_url" translatable="false">ko-fi.com/vagrant326</string>
+    <string name="support_or">or open it yourself</string>
+    <string name="support_back">BACK returns to settings.</string>
+
+    <string name="strip_no_table">%1$s no table</string>
+    <string name="strip_press_a_direction">press any direction</string>
+    <string name="strip_nothing_there">nothing that way</string>
+    <string name="strip_ready">start</string>
+    <string name="strip_digit_layer">digits</string>
+    <string name="strip_chooser_hint">up / down</string>
+    <string name="strip_no_editor">nowhere to type — this app never asked for input</string>
+    <string name="strip_hint_submit">submit</string>
+    <string name="strip_hint_back">back</string>
+    <string name="strip_hint_delete">delete</string>
+    <string name="strip_hint_language">language</string>
+    <string name="strip_hint_layer">digits</string>
+    <string name="strip_submit_key">centre</string>
+    <string name="strip_back_key">back</string>
+    <string name="strip_in_tree">in the tree</string>
+</resources>
