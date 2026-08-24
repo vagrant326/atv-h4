@@ -15,6 +15,13 @@ sealed interface Action {
      */
     data class WordJump(val direction: Direction) : Action
 
+    /**
+     * The rest of the word, from holding delete in the edit mode. The tap has already taken one
+     * character by the time the hold arrives, so this finishes the word rather than repeating
+     * the whole of it.
+     */
+    data object WordDelete : Action
+
     data object Submit : Action
 
     /** Abandon the partial code if there is one, otherwise leave. */
@@ -85,10 +92,14 @@ object KeyBindings {
             }
         }
 
+        // A hold is worth its dwell time only where it replaces three presses or more, which is
+        // why both of these are "repeat the same action to a word boundary" and why none of
+        // them is a character. Two presses would be a wash; see docs/20-h4writer.md §8.
         if (longPress && editing) {
             return when (keyCode) {
                 KeyEvent.KEYCODE_DPAD_LEFT -> Action.WordJump(Direction.LEFT)
                 KeyEvent.KEYCODE_DPAD_RIGHT -> Action.WordJump(Direction.RIGHT)
+                KeyEvent.KEYCODE_DPAD_UP -> Action.WordDelete
                 else -> Action.Ignore
             }
         }

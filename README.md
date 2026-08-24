@@ -108,6 +108,7 @@ repetitive. So `↑→` enters a mode where a direction does one thing for one p
 | `←` / `→` | move the caret one character |
 | **hold `←` / `→`** | move a whole word |
 | `↑` | delete |
+| **hold `↑`** | delete the rest of the word |
 | `↓` | language list |
 | `BACK` | back to typing |
 
@@ -115,12 +116,22 @@ Walking back five characters and deleting: **8 presses instead of 21**. The lang
 lives here rather than in the reserved branch because you change language once a session and
 fix a typo once a word.
 
-The hold moves by a **word, not by a rate**, and that is the only reason it is safe. Android
+Both holds move by a **word, not by a rate**, and that is the only reason they are safe. Android
 repeats a held key about twenty times a second after a 400 ms delay, and a TV query averages
 eleven characters — an accelerating caret crosses the whole field before your thumb reacts,
 while any rate slow enough to aim is no faster than just pressing. One hold is one jump, later
 repeats are swallowed, and the jump stops at a word boundary, so overshoot is impossible rather
 than merely unlikely.
+
+These are the only two holds in the keyboard, and there will not be a third without a
+measurement. Making every direction press-or-hold would double the leaf space and cut the code
+from 2.42 actions per character to about 1.62 — but a hold costs roughly two to two and a half
+presses in dwell time, which is exactly the break-even band, and nobody has measured `t_hold` on
+a real remote yet. Meanwhile it would put *timing* inside the code, so too short a hold would
+type a different character, and it would double what the guide has to show at every step.
+`docs/20-h4writer.md §8` has the arithmetic. The rule it leaves behind: **a hold earns its dwell
+time only when it replaces three presses or more**, which is why both of these replace five or
+six, and why neither is a character.
 
 ### Digits
 

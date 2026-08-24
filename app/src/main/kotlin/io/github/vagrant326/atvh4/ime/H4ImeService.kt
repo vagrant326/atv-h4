@@ -139,6 +139,7 @@ class H4ImeService : InputMethodService() {
                 if (mode == Mode.EDIT) edit(action.direction) else press(action.direction)
 
             is Action.WordJump -> jumpWord(action.direction)
+            Action.WordDelete -> deleteWord()
             Action.Submit -> submit()
             Action.Delete -> backspace()
             Action.NextLanguage -> stepLanguage(1)
@@ -249,6 +250,18 @@ class H4ImeService : InputMethodService() {
             KeyEvent.KEYCODE_DPAD_RIGHT
         }
         repeat(steps) { sendDownUpKeyEvents(key) }
+    }
+
+    /**
+     * Finishes the word the tap started deleting. Same arithmetic as the caret jump, because it
+     * is the same question — how far is the word boundary — and the same composition: the
+     * key-down already took one character, so this takes the rest.
+     */
+    private fun deleteWord() {
+        deadPress = false
+        val connection = currentInputConnection ?: return
+        val steps = Caret.stepsBack(connection.getTextBeforeCursor(WORD_SCAN, 0) ?: return)
+        repeat(steps) { backspace() }
     }
 
     private fun enterMode(next: Mode) {
