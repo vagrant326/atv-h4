@@ -195,7 +195,17 @@ class CodesActivity : Activity() {
     private fun leads(node: Node?): String = when (node) {
         null -> getString(R.string.strip_dead_branch)
         is Node.Leaf -> display(node.symbol)
-        is Node.Branch -> node.preview.joinToString(" ") { display(it) } + " …"
+        // What one more press finishes, then a count of what is further down. The full list is
+        // the rest of this screen, so repeating it here would only be noise.
+        is Node.Branch -> {
+            val immediate = node.immediate.joinToString(" ") { display(it) }
+            val deeper = node.deeper.size
+            if (deeper == 0) {
+                immediate
+            } else {
+                getString(R.string.codes_leads_to, immediate, deeper)
+            }
+        }
     }
 
     /**

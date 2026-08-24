@@ -106,6 +106,27 @@ fun main(arguments: Array<String>) {
         line("all", own, merged)
     }
 
+    // What a tidy tree would cost. Every character weighted the same puts them all at the same
+    // depth, which is the only way the three carrying branches come out the same size — and it
+    // is the answer to "can this be divided more evenly": yes, and this is the bill.
+    println()
+    println("uneven by frequency against evenly divided")
+    for ((language, table) in tables) {
+        val weights = Weights.text(table)
+        val balanced = CodeTree.withControlBranch(
+            weights.mapValues { 1L },
+            Weights.CONTROL_BRANCH,
+        )
+        println(
+            "  %-4s frequency-ordered %.3f   evenly divided %.3f   (+%.0f%%)".format(
+                language,
+                trees.getValue(language).meanCodeLength(weights),
+                balanced.meanCodeLength(weights),
+                (balanced.meanCodeLength(weights) / trees.getValue(language).meanCodeLength(weights) - 1) * 100,
+            )
+        )
+    }
+
     println()
     println("the tree, per language")
     for ((language, table) in tables) {

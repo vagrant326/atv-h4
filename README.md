@@ -48,9 +48,21 @@ this is safe, but it is worth stating rather than hiding inside the claim of d-p
 | `DPAD_CENTER` | Submit — whatever the field's own action is |
 | `BACK` | In order: drop a half-finished character, leave a mode, close the keyboard |
 
-The guide above the field shows what each direction leads to **from where you are now**, so
-you never have to know a code in advance: press towards the letter you want and read the next
-step. Settings → Guide switches between the full cross, one compact line, and off.
+The guide above the field shows what each direction leads to **from where you are now**, so you
+never have to know a code in advance: press towards the letter you want and read the next step.
+Settings → Guide switches between the full cross, one compact line, and off.
+
+Each direction gets two rows — what **one more press finishes**, and what is **further down**:
+
+```
+↑  _ [del] [123] [edit]
+←  a e                     →  i n r          ↓  l o s t
+   bcdghjkmpquvwxyz.,-'&:/    byfk
+```
+
+Sorted alphabetically, not by frequency, because the question you are asking is "is my letter in
+here" and frequency order puts the answer somewhere unpredictable. The second row lists
+**everything** rather than a sample: "not in the twelve I showed you" is not an answer.
 
 **Nothing here assumes you will memorise the codes.** MacKenzie's participants reached about 20
 wpm after ten sessions, and that may well happen, but it is not designed for: the guide is
@@ -94,6 +106,13 @@ question the guide is asked.
 Expected **2.424 presses per character** for English, **2.528** for Polish, deepest code **6**
 in both. The full table is in the app, under Settings → Codes, because on this keyboard the
 table *is* the interface and a reference you can reach from the sofa is part of the product.
+
+The branches are lopsided — `↓` holds four letters and `←` holds twenty-two — and that is the
+shape of the language, not a flaw in the construction. A skewed distribution means the cheap
+symbols are few and the expensive ones are many, so evening out the branch sizes means moving
+frequent letters deeper. Priced exactly: a tree with every character at the same depth, which is
+the only way the three branches come out equal, costs **+22% for English and +18% for Polish**
+(2.424 → 2.949, 2.528 → 2.996). `./gradlew :core:bench` prints that row.
 
 Space gets two presses, not one, and that is the corpus talking. At 18.9% — its share in
 running speech — Huffman gives it one press and a quarter of the whole code space. But a TV

@@ -53,7 +53,14 @@ class BranchStripView(context: Context) : LinearLayout(context) {
         ellipsize = TextUtils.TruncateAt.END
     }
 
-    private val cells = mutableMapOf<Direction, TextView>()
+    /**
+     * Two rows per direction: what one more press finishes, and what is further down. Sorted
+     * for reading rather than by frequency — the question is "is my letter in here", and a
+     * frequency-ordered list is the worst possible arrangement for answering it.
+     */
+    private class Cell(val view: LinearLayout, val immediate: TextView, val deeper: TextView)
+
+    private val cells = mutableMapOf<Direction, Cell>()
 
     /** The path so far, in the middle of the cross where the eye already is. */
     private val centre = TextView(context).apply {
@@ -130,21 +137,12 @@ class BranchStripView(context: Context) : LinearLayout(context) {
             return
         }
 
-        // The edit mode is not a tree: one press, one action. So the guide names the actions
-        // rather than drawing branches, which is also the honest picture of what changed.
-        val labels: Map<Direction, CharSequence> = if (state.mode == Mode.EDIT) {
-            // In the edit mode every direction is a function, so the whole legend is coloured
-            // as one rather than bracketed item by item.
-            Direction.entries.associateWith { colour(editLabel(it), FUNCTION) }
-        } else {
-            val branches = state.coder.branches
-            Direction.entries.associateWith { branch(branches[it.ordinal]) }
-        }
-
         if (inlineHint.visibility == VISIBLE) {
             inlineHint.text = SpannableStringBuilder().apply {
                 for (direction in Direction.entries) {
-                    append(direction.arrow).append(labels.getValue(direction)).append("   ")
+                    append(direction.arrow)
+                    append(if (state.mode == Mode.EDIT) editLabel(direction) else oneLine(state, direction))
+                    append("   ")
                 }
             }
             return
@@ -152,11 +150,15 @@ class BranchStripView(context: Context) : LinearLayout(context) {
 
         for (direction in Direction.entries) {
             val cell = cells.getValue(direction)
-            cell.text = SpannableStringBuilder("${direction.arrow} ")
-                .append(labels.getValue(direction))
-            val resolved = state.mode == Mode.EDIT ||
-                state.coder.branches[direction.ordinal] is Node.Leaf
-            cell.setTextColor(if (resolved) ACCENT else DIM)
+            // The edit mode is not a tree: one press, one action. So there is no "deeper" row
+            // to draw, which is also the honest picture of what changed.
+            if (state.mode == Mode.EDIT) {
+                cell.immediate.text = "${direction.arrow} ${editLabel(direction)}"
+                cell.immediate.setTextColor(FUNCTION)
+                cell.deeper.visibility = GONE
+                continue
+            }
+            fill(cell, direction, state.coder.branches[direction.ordinal])
         }
         centre.text = if (state.mode == Mode.EDIT) {
             context.getString(R.string.strip_editing)
@@ -188,17 +190,71 @@ class BranchStripView(context: Context) : LinearLayout(context) {
         }
     )
 
-    /** A leaf names its symbol; a branch names the heaviest symbols underneath it. */
-    private fun branch(node: Node?): CharSequence = when (node) {
-        null -> context.getString(R.string.strip_dead_branch)
-        is Node.Leaf -> display(node.symbol)
-        is Node.Branch -> SpannableStringBuilder().apply {
-            for (symbol in node.preview) {
-                append(display(symbol))
+    /**
+     * A leaf finishes here; a branch shows what one more press finishes on the top row, and
+     * everything further down on the second.
+     */
+    private fun fill(cell: Cell, direction: Direction, node: Node?) {
+        val arrow = "${direction.arrow} "
+        when (node) {
+            null -> {
+                cell.immediate.text = arrow + context.getString(R.string.strip_dead_branch)
+                cell.immediate.setTextColor(DIM)
+                cell.deeper.visibility = GONE
             }
-            append("…")
+
+            is Node.Leaf -> {
+                cell.immediate.text = SpannableStringBuilder(arrow).append(display(node.symbol))
+                cell.immediate.setTextColor(ACCENT)
+                cell.deeper.visibility = GONE
+            }
+
+            is Node.Branch -> {
+                // Spaced on the top row, which is short and worth reading one item at a time;
+                // packed on the second, which can hold twenty and needs the width.
+                cell.immediate.text = SpannableStringBuilder(arrow)
+                    .append(row(node.immediate, spaced = true))
+                cell.immediate.setTextColor(ACCENT)
+                val deeper = node.deeper
+                cell.deeper.visibility = if (deeper.isEmpty()) GONE else VISIBLE
+                cell.deeper.text = row(deeper, spaced = false)
+            }
         }
     }
+
+    /**
+     * A run of symbols, sorted for scanning: letters and digits in order, then punctuation,
+     * then functions. Frequency order was the previous arrangement and is the worst possible
+     * one for the only question being asked — is my letter in here — because it puts the answer
+     * somewhere unpredictable.
+     *
+     * Characters are concatenated without separators so a branch of twenty still fits; the
+     * brackets and colour on functions are what stop them joining the run.
+     */
+    private fun row(symbols: List<Symbol>, spaced: Boolean): CharSequence =
+        SpannableStringBuilder().apply {
+            val ordered = symbols.sortedWith(
+                compareBy(
+                    { it is Symbol.Function },
+                    { (it as? Symbol.Character)?.value?.isLetterOrDigit() == false },
+                    { Symbol.rank(it) },
+                )
+            )
+            for ((at, symbol) in ordered.withIndex()) {
+                if (spaced && at > 0) {
+                    append(" ")
+                }
+                append(display(symbol))
+            }
+        }
+
+    /** The compact one-row form, which can only afford what the next press finishes. */
+    private fun oneLine(state: StripState, direction: Direction): CharSequence =
+        when (val node = state.coder.branches[direction.ordinal]) {
+            null -> context.getString(R.string.strip_dead_branch)
+            is Node.Leaf -> display(node.symbol)
+            is Node.Branch -> row(node.immediate, spaced = true)
+        }
 
     /**
      * Characters as themselves; functions bracketed and in their own colour.
@@ -299,11 +355,13 @@ class BranchStripView(context: Context) : LinearLayout(context) {
         }
 
     private fun buildCross(): View {
-        // Wide enough for a full first-press branch — about a dozen symbols — because a
-        // truncated branch forces a guess, and nothing here assumes the codes are known.
+        // Wide enough for a whole root branch — twenty-odd symbols over two lines — because a
+        // truncated branch forces a guess, and nothing here assumes the codes are known. The
+        // strip is taller for it, which docs/20-h4writer.md §4 already names as this method's
+        // standing cost against the search results underneath.
         val cross = LinearLayout(context).apply {
             orientation = VERTICAL
-            layoutParams = LayoutParams(dp(432), LayoutParams.WRAP_CONTENT)
+            layoutParams = LayoutParams(dp(560), LayoutParams.WRAP_CONTENT)
         }
         cross.addView(crossRow(null, cell(Direction.UP), null))
         cross.addView(crossRow(cell(Direction.LEFT), centre, cell(Direction.RIGHT)))
@@ -325,19 +383,37 @@ class BranchStripView(context: Context) : LinearLayout(context) {
         layoutParams = LayoutParams(0, 1, 1f)
     }
 
-    private fun cell(direction: Direction) = TextView(context).apply {
-        setTextColor(DIM)
-        setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-        gravity = Gravity.CENTER
-        isSingleLine = true
-        ellipsize = TextUtils.TruncateAt.END
-        setPadding(dp(6), dp(4), dp(6), dp(4))
-        setBackgroundColor(CELL)
-        layoutParams = LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-            marginStart = dp(2)
-            marginEnd = dp(2)
+    private fun cell(direction: Direction): View {
+        val immediate = TextView(context).apply {
+            setTextColor(ACCENT)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+            gravity = Gravity.CENTER
+            isSingleLine = true
+            ellipsize = TextUtils.TruncateAt.END
         }
-        cells[direction] = this
+        // Two lines, because a root branch can hold twenty symbols and a list that says "and
+        // some others" does not answer the question it was asked.
+        val deeper = TextView(context).apply {
+            setTextColor(DIM)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
+            gravity = Gravity.CENTER
+            maxLines = 2
+            ellipsize = TextUtils.TruncateAt.END
+            setPadding(0, dp(2), 0, 0)
+        }
+        val view = LinearLayout(context).apply {
+            orientation = VERTICAL
+            setPadding(dp(6), dp(5), dp(6), dp(5))
+            setBackgroundColor(CELL)
+            layoutParams = LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                marginStart = dp(2)
+                marginEnd = dp(2)
+            }
+            addView(immediate)
+            addView(deeper)
+        }
+        cells[direction] = Cell(view, immediate, deeper)
+        return view
     }
 
     /** Two columns, so the values line up instead of drifting with label length. */

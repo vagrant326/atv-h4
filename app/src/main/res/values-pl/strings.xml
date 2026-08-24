@@ -59,6 +59,7 @@
     <string name="codes_language">Język</string>
     <string name="codes_summary">%1$d znaków, najdłuższy kod %2$d naciśnięć, średnio %3$.2f naciśnięcia na znak.</string>
     <string name="codes_first_press">PIERWSZE NACIŚNIĘCIE PROWADZI DO</string>
+    <string name="codes_leads_to">%1$s · i %2$d głębiej</string>
     <string name="codes_back">BACK wraca do ustawień.</string>
     <string name="codes_space">spacja</string>
     <string name="codes_backspace">usuwanie</string>

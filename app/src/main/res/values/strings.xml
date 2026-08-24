@@ -83,6 +83,7 @@
     <string name="codes_language">Language</string>
     <string name="codes_summary">%1$d characters, longest code %2$d presses, %3$.2f presses per character on average.</string>
     <string name="codes_first_press">FIRST PRESS LEADS TO</string>
+    <string name="codes_leads_to">%1$s · and %2$d further down</string>
     <string name="codes_back">BACK returns to settings.</string>
     <string name="codes_space">space</string>
     <string name="codes_backspace">delete</string>

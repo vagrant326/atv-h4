@@ -19,22 +19,43 @@ sealed interface Node {
     val weight: Long
 
     /**
-     * The heaviest symbols under this node, heaviest first. This is what makes the guide
-     * usable on the first attempt: a branch can say *what is down there* rather than only
-     * that something is.
+     * Every symbol under this node, in [Symbol.rank] order — not a sample of them.
+     *
+     * This is what makes the guide usable on the first attempt: a branch says *what is down
+     * there* rather than only that something is. It is the whole set because a capped list is
+     * worse than useless for the one question being asked — is my letter in here — since the
+     * answer "not in the twelve I showed you" is not an answer. How to arrange it for reading
+     * is the view's problem; rank order here only makes the list deterministic.
      */
-    val preview: List<Symbol>
+    val beneath: List<Symbol>
 
     data class Leaf(val symbol: Symbol, override val weight: Long) : Node {
-        override val preview: List<Symbol> get() = listOf(symbol)
+        override val beneath: List<Symbol> get() = listOf(symbol)
     }
 
     class Branch(
         /** Always [ARITY] entries. Null where the code space is unused. */
         val children: List<Node?>,
         override val weight: Long,
-        override val preview: List<Symbol>,
-    ) : Node
+        override val beneath: List<Symbol>,
+    ) : Node {
+
+        /**
+         * Symbols one press away: the children that are already leaves.
+         *
+         * Split from [deeper] because the two answer different questions. "One more press and
+         * you have it" is a decision the user can act on now; "somewhere under here" only tells
+         * them which way to go. Presenting both as one list is what makes a wide branch read as
+         * a junk drawer.
+         */
+        val immediate: List<Symbol>
+            get() = children.filterIsInstance<Leaf>()
+                .map { it.symbol }
+                .sortedBy { Symbol.rank(it) }
+
+        /** Symbols more than one press away. */
+        val deeper: List<Symbol> get() = beneath - immediate.toSet()
+    }
 }
 
 /** Number of code symbols. Four, because that is what a d-pad has. */
@@ -112,17 +133,6 @@ class CodeTree private constructor(
     }
 
     companion object {
-
-        /**
-         * How many symbols a branch names on the strip before it gives up and truncates.
-         *
-         * Sized so the *first* press is never a guess. With the shipped tables the root's four
-         * branches hold about a dozen symbols each, and a truncated list is the one failure the
-         * guide must not have: a user who cannot see their letter has to pick a direction at
-         * random and walk back. Deeper branches are far smaller, so this bound only ever binds
-         * at the top.
-         */
-        const val PREVIEW_LIMIT = 12
 
         /**
          * @param weights every symbol the tree must be able to produce, with its frequency.
@@ -346,11 +356,10 @@ class CodeTree private constructor(
                 return Node.Leaf(symbol, weights[symbol] ?: 0L)
             }
             val children = slot.children.map { child -> child?.let { freeze(it, weights) } }
-            val preview = children.filterNotNull()
-                .flatMap { it.preview }
-                .sortedByDescending { weights[it] ?: 0L }
-                .take(PREVIEW_LIMIT)
-            return Node.Branch(children, children.filterNotNull().sumOf { it.weight }, preview)
+            val beneath = children.filterNotNull()
+                .flatMap { it.beneath }
+                .sortedBy { Symbol.rank(it) }
+            return Node.Branch(children, children.filterNotNull().sumOf { it.weight }, beneath)
         }
 
         private class Merge(

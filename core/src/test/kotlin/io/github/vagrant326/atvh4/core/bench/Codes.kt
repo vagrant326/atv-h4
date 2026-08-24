@@ -44,7 +44,11 @@ fun main(arguments: Array<String>) {
         val leads = when (child) {
             null -> "—"
             is Node.Leaf -> child.symbol.label
-            is Node.Branch -> child.preview.joinToString(" ") { it.label } + " …"
+            // What one more press finishes, then how much is further down. The full table follows.
+        is Node.Branch -> {
+            val immediate = child.immediate.joinToString(" ") { it.label }
+            if (child.deeper.isEmpty()) immediate else "$immediate  · ${child.deeper.size} deeper"
+        }
         }
         println("  ${direction.arrow}  $leads")
     }
