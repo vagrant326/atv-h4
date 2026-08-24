@@ -306,7 +306,13 @@ user's settings with it.
 
 ## Installing
 
-Once a release exists, either address serves the newest build:
+In the AFTVnews Downloader app, enter code **6404268**. Seven digits on the remote beats
+entering a URL with a grid keyboard, which is the problem this project exists to solve — and it
+beats it by more here than anywhere else in the programme, since typing a URL with four
+directions would be a very long walk. The dev channel is **5556267**, and installs alongside
+rather than over the released one.
+
+Or use either address directly. Both are permanent and both always serve the newest build:
 
 ```
 https://github.com/vagrant326/atv-h4/releases/download/latest/atv-h4.apk
@@ -315,7 +321,10 @@ https://github.com/vagrant326/atv-h4/releases/latest/download/atv-h4.apk
 
 The first is a rolling `latest` release that each build recreates. The second is resolved by
 GitHub itself from the newest versioned release. The asset name deliberately carries no
-version number, which is what keeps the URL stable.
+version number, which is what keeps the URL stable — and what keeps the Downloader codes
+valid across releases. Rename the asset and the codes break silently.
+[All releases](https://github.com/vagrant326/atv-h4/releases) are listed if you need a
+specific older one.
 
 Then Settings → System → Keyboard, select it, and enable it. Android requires that step
 manually for every IME.
