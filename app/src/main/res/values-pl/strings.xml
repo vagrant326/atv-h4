@@ -154,7 +154,7 @@
     <string name="strip_ready">start</string>
     <string name="strip_digit_layer">cyfry</string>
     <string name="strip_edit_mode">edycja</string>
-    <string name="strip_edit_exit">back wraca do pisania</string>
+    <string name="strip_edit_exit">przytrzymaj ◄ ► na całe słowo · back wraca do pisania</string>
     <string name="strip_editing">edycja</string>
     <string name="strip_edit_left">karetka ◄</string>
     <string name="strip_edit_right">karetka ►</string>

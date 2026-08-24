@@ -25,7 +25,9 @@ in existence has them — including Chromecast-with-Google-TV and Shield-class r
 have no number keys and cannot run the companion project
 [`atv-letterwise`](https://github.com/vagrant326/atv-letterwise) at all.
 
-There is no long press anywhere in the typing path either. Deleting, moving the caret,
+There is no long press in the typing path either — the only hold in the keyboard is the
+word jump inside the edit mode, where nothing is being composed and a repeat cannot commit a
+character. Deleting, moving the caret,
 switching language and reaching the digits all live on the d-pad: two of them in the reserved
 `UP` branch, two inside the edit mode. Every assignable button is optional, including the digit
 one — and a field that asks for numbers switches to the digit layer by itself, so nothing about
@@ -104,6 +106,7 @@ repetitive. So `↑→` enters a mode where a direction does one thing for one p
 | In edit mode | |
 |---|---|
 | `←` / `→` | move the caret one character |
+| **hold `←` / `→`** | move a whole word |
 | `↑` | delete |
 | `↓` | language list |
 | `BACK` | back to typing |
@@ -111,6 +114,13 @@ repetitive. So `↑→` enters a mode where a direction does one thing for one p
 Walking back five characters and deleting: **8 presses instead of 21**. The language switch
 lives here rather than in the reserved branch because you change language once a session and
 fix a typo once a word.
+
+The hold moves by a **word, not by a rate**, and that is the only reason it is safe. Android
+repeats a held key about twenty times a second after a 400 ms delay, and a TV query averages
+eleven characters — an accelerating caret crosses the whole field before your thumb reacts,
+while any rate slow enough to aim is no faster than just pressing. One hold is one jump, later
+repeats are swallowed, and the jump stops at a word boundary, so overshoot is impossible rather
+than merely unlikely.
 
 ### Digits
 

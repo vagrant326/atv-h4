@@ -6,6 +6,7 @@ import android.text.InputType
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import io.github.vagrant326.atvh4.core.Caret
 import io.github.vagrant326.atvh4.core.Coder
 import io.github.vagrant326.atvh4.core.CodeTree
 import io.github.vagrant326.atvh4.core.Direction
@@ -117,8 +118,12 @@ class H4ImeService : InputMethodService() {
             return super.onKeyDown(keyCode, event)
         }
 
-        val action = KeyBindings.of(keyCode, event.repeatCount, preferences.customKeys)
-            ?: return super.onKeyDown(keyCode, event)
+        val action = KeyBindings.of(
+            keyCode,
+            event.repeatCount,
+            preferences.customKeys,
+            editing = mode == Mode.EDIT,
+        ) ?: return super.onKeyDown(keyCode, event)
 
         if (action == Action.Ignore) {
             return true
@@ -130,7 +135,10 @@ class H4ImeService : InputMethodService() {
         }
 
         when (action) {
-            is Action.Code -> if (mode == Mode.EDIT) edit(action.direction) else press(action.direction)
+            is Action.Code ->
+                if (mode == Mode.EDIT) edit(action.direction) else press(action.direction)
+
+            is Action.WordJump -> jumpWord(action.direction)
             Action.Submit -> submit()
             Action.Delete -> backspace()
             Action.NextLanguage -> stepLanguage(1)
@@ -213,6 +221,34 @@ class H4ImeService : InputMethodService() {
             Direction.UP -> backspace()
             Direction.DOWN -> openChooser()
         }
+    }
+
+    /**
+     * A held caret moves by a whole word, as a fixed number of single steps.
+     *
+     * Single steps rather than a computed selection: the caret's absolute position is not
+     * something the keyboard can know without asking, and asking the editor to move is the only
+     * version that stays correct in a field it did not fill. The count comes from the text the
+     * editor reports, so a jump ends on a word boundary and cannot overshoot.
+     */
+    private fun jumpWord(direction: Direction) {
+        deadPress = false
+        val connection = currentInputConnection ?: return
+        val steps = when (direction) {
+            Direction.LEFT ->
+                Caret.stepsBack(connection.getTextBeforeCursor(WORD_SCAN, 0) ?: return)
+
+            Direction.RIGHT ->
+                Caret.stepsForward(connection.getTextAfterCursor(WORD_SCAN, 0) ?: return)
+
+            else -> return
+        }
+        val key = if (direction == Direction.LEFT) {
+            KeyEvent.KEYCODE_DPAD_LEFT
+        } else {
+            KeyEvent.KEYCODE_DPAD_RIGHT
+        }
+        repeat(steps) { sendDownUpKeyEvents(key) }
     }
 
     private fun enterMode(next: Mode) {
@@ -330,5 +366,12 @@ class H4ImeService : InputMethodService() {
     private companion object {
         /** Only used to find the end of an existing value, so a generous bound is plenty. */
         const val MAX_TAIL = 2000
+
+        /**
+         * How far to look for a word boundary. A TV query is eleven characters on average; this
+         * is long enough that the bound is never what stops a jump, and short enough that the
+         * editor is not asked for a document.
+         */
+        const val WORD_SCAN = 64
     }
 }

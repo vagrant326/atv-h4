@@ -8,6 +8,13 @@ sealed interface Action {
     /** One of the four code symbols. */
     data class Code(val direction: Direction) : Action
 
+    /**
+     * A whole word, from holding the caret in the edit mode. Only ever produced there: holding
+     * a direction while typing must never repeat, because a code symbol that arrives twice
+     * emits a character the user did not ask for.
+     */
+    data class WordJump(val direction: Direction) : Action
+
     data object Submit : Action
 
     /** Abandon the partial code if there is one, otherwise leave. */
@@ -58,15 +65,16 @@ object KeyBindings {
     }
 
     /**
-     * @param repeatCount straight from the [KeyEvent]. Every repeat is swallowed here, on every
-     *   key. A held direction that auto-repeated would walk the tree on its own and emit
-     *   characters the user did not ask for — and unlike an ambiguous keypad, where a stray
-     *   press shows up as a wrong candidate to walk past, here it is committed text.
-     *
-     *   The one exception is the language key, where the hold opens the list. It is not a code
-     *   symbol, so a hold there cannot type anything.
+     * @param repeatCount straight from the [KeyEvent]. Only `1` counts as a hold; later repeats
+     *   are swallowed, so one hold is one action rather than a rate. That is what keeps a held
+     *   caret from crossing the whole field — Android repeats at roughly twenty a second and a
+     *   TV query averages eleven characters.
+     * @param editing whether the edit mode is in force, which is the only place a held
+     *   direction means anything. While typing, every repeat is swallowed on every key: a held
+     *   code symbol that repeated would walk the tree on its own and commit text nobody asked
+     *   for, and unlike an ambiguous keypad there is no wrong candidate to walk past afterwards.
      */
-    fun of(keyCode: Int, repeatCount: Int, custom: CustomKeys): Action? {
+    fun of(keyCode: Int, repeatCount: Int, custom: CustomKeys, editing: Boolean): Action? {
         val longPress = repeatCount == 1
 
         if (custom.language != NO_KEY && keyCode == custom.language) {
@@ -74,6 +82,14 @@ object KeyBindings {
                 repeatCount > 1 -> Action.Ignore
                 longPress -> Action.ShowLanguages
                 else -> Action.NextLanguage
+            }
+        }
+
+        if (longPress && editing) {
+            return when (keyCode) {
+                KeyEvent.KEYCODE_DPAD_LEFT -> Action.WordJump(Direction.LEFT)
+                KeyEvent.KEYCODE_DPAD_RIGHT -> Action.WordJump(Direction.RIGHT)
+                else -> Action.Ignore
             }
         }
 
