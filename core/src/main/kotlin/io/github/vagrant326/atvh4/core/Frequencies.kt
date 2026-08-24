@@ -114,14 +114,16 @@ object Weights {
     )
 
     /**
-     * The same idea one layer down. No edit mode and no second layer switch: the way out of the
-     * digit layer is a space or `BACK`, and offering a third route would only be another thing
-     * to read.
+     * The digit layer uses the **same** reserved branch, which is the point: `↑←` switches layer
+     * in both directions, `↑↓` deletes in both, `↑↑` is space in both. Four positions, one
+     * meaning each, wherever you are.
+     *
+     * It started as a shorter branch holding only space and delete, which left `↑←` and `↑→`
+     * leading nowhere — two dead slots in the one part of the tree a user actually learns.
+     * Filling them with the functions they already have in the text tree costs nothing and
+     * removes both.
      */
-    val DIGIT_CONTROL_BRANCH: Map<Direction, Symbol> = mapOf(
-        Direction.UP to Symbol.Character(' '),
-        Direction.DOWN to Symbol.Function.BACKSPACE,
-    )
+    val DIGIT_CONTROL_BRANCH: Map<Direction, Symbol> = CONTROL_BRANCH
 
     /**
      * Letters and punctuation: no functions, no space, no digits. All four live elsewhere.
@@ -149,18 +151,21 @@ object Weights {
     }
 
     /**
-     * The second layer: ten digits, and nothing else to compete with them.
+     * The second layer: ten digits, a full stop and a comma.
      *
-     * Ten characters over three carrying branches fit in twelve two-press slots exactly, so
-     * **every digit costs two presses** — which is the entire reason the layer exists, since a
-     * run of digits is a PIN, a pairing code or a seven-digit sideload code.
+     * Three carrying branches give exactly twelve two-press slots, and ten digits would leave
+     * two of them leading nowhere. A dead slot is a press that does nothing, which on a method
+     * where a press is invisible until the code completes is indistinguishable from the remote
+     * not being heard — so the two spare slots go to the marks a numeric field actually wants,
+     * a decimal point and a thousands comma. **Every symbol in this layer is two presses**, and
+     * none of the twelve leads nowhere.
      *
      * The weight is uniform because there is no corpus of "digits a person types into a TV".
      * That is the absence of information stated honestly rather than a fabricated frequency, and
-     * with ten symbols in twelve slots it changes nothing anyway.
+     * with twelve symbols in twelve slots it changes nothing anyway.
      */
     fun digitLayer(): Map<Symbol, Long> =
-        Symbol.DIGITS.associate { Symbol.Character(it) to DIGIT_WEIGHT }
+        (Symbol.DIGITS + listOf('.', ',')).associate { Symbol.Character(it) to DIGIT_WEIGHT }
 
     /** Arbitrary: only ratios reach Huffman, and with a uniform table there are none. */
     private const val DIGIT_WEIGHT = 1L

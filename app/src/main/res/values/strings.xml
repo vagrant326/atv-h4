@@ -169,7 +169,7 @@
 
     <string name="strip_no_table">%1$s no table</string>
     <string name="strip_press_a_direction">press any direction</string>
-    <string name="strip_nothing_there">nothing that way</string>
+    <string name="strip_nothing_there">no code that way — nothing typed, try another direction</string>
     <string name="strip_ready">start</string>
     <string name="strip_digit_layer">digits</string>
     <string name="strip_edit_mode">edit</string>

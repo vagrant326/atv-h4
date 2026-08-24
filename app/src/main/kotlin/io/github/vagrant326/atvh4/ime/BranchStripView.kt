@@ -242,7 +242,10 @@ class BranchStripView(context: Context) : LinearLayout(context) {
             )
             for ((at, symbol) in ordered.withIndex()) {
                 if (spaced && at > 0) {
-                    append(" ")
+                    // A middot, not a space. Four letters in alphabetical order read as a word
+                    // often enough to matter — "l o s t" was the one that made the point — and a
+                    // guide that looks like it is suggesting a word is lying about its job.
+                    append(colour(" · ", MUTED))
                 }
                 append(display(symbol))
             }

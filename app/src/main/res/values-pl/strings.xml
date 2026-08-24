@@ -146,7 +146,7 @@
 
     <string name="strip_no_table">%1$s bez tabeli</string>
     <string name="strip_press_a_direction">naciśnij dowolny kierunek</string>
-    <string name="strip_nothing_there">tam nic nie ma</string>
+    <string name="strip_nothing_there">w tym kierunku nie ma kodu — nic nie wpisano, naciśnij inny</string>
     <string name="strip_ready">start</string>
     <string name="strip_digit_layer">cyfry</string>
     <string name="strip_edit_mode">edycja</string>

@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
+/** The shipped text trees have no dead slots either; `:core:bench` shows the shape. */
+
 class CodeTreeTest {
 
     @Test
@@ -152,25 +154,35 @@ class CodeTreeTest {
     }
 
     /**
-     * Ten digits over three carrying branches is ten symbols in twelve two-press slots, so
-     * every digit costs exactly two — which is the entire reason the layer exists. Punctuation
-     * is deliberately not here; it lives in the text tree.
+     * Twelve symbols in exactly twelve two-press slots, so every one of them costs two presses
+     * and **not one direction pair leads nowhere**. A dead slot is a press that does nothing,
+     * which on this method is indistinguishable from the remote not being heard.
      */
     @Test
-    fun `every digit in the layer is two presses`() {
+    fun `the digit layer is two presses everywhere and has no dead slots`() {
         val layer = CodeTree.withControlBranch(
             Weights.digitLayer(),
             Weights.DIGIT_CONTROL_BRANCH,
         )
 
-        for (digit in Symbol.DIGITS) {
+        for (character in Symbol.DIGITS + listOf('.', ',')) {
             assertEquals(
                 2,
-                requireNotNull(layer.codeOf(Symbol.Character(digit))).size,
-                "'$digit'",
+                requireNotNull(layer.codeOf(Symbol.Character(character))).size,
+                "'$character'",
             )
         }
-        assertNull(layer.codeOf(Symbol.Character('&')), "a mark reached the digit layer")
+        for (first in Direction.entries) {
+            val branch = layer.root.children[first.ordinal]
+            assertNotNull(branch, "$first leads nowhere")
+            for (second in Direction.entries) {
+                assertNotNull(
+                    (branch as Node.Branch).children[second.ordinal],
+                    "$first then $second leads nowhere",
+                )
+            }
+        }
+        assertNull(layer.codeOf(Symbol.Character('&')), "an unwanted mark reached the layer")
     }
 
     private fun controlTree(text: String) = CodeTree.withControlBranch(

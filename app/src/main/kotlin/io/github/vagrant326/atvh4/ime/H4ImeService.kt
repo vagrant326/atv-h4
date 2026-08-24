@@ -202,7 +202,13 @@ class H4ImeService : InputMethodService() {
             }
 
             Symbol.Function.BACKSPACE -> backspace()
-            Symbol.Function.LAYER -> enterMode(Mode.DIGITS)
+
+            // Toggles, because the reserved branch is the same in both layers: `↑←` means
+            // "switch layer" wherever you are, rather than "go to digits" in one place and
+            // nothing in the other.
+            Symbol.Function.LAYER ->
+                enterMode(if (mode == Mode.DIGITS) Mode.TEXT else Mode.DIGITS)
+
             Symbol.Function.EDIT -> enterMode(Mode.EDIT)
         }
     }

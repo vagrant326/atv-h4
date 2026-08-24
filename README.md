@@ -55,14 +55,16 @@ Settings → Guide switches between the full cross, one compact line, and off.
 Each direction gets two rows — what **one more press finishes**, and what is **further down**:
 
 ```
-↑  _ [del] [123] [edit]
-←  a e                     →  i n r          ↓  l o s t
-   bcdghjkmpquvwxyz.,-'&:/    byfk
+↑  _ · [del] · [123] · [edit]
+←  a · e                    →  i · n · r      ↓  l · o · s · t
+   bcdghjkmpquvwxyz.,-'&:/     byfk
 ```
 
 Sorted alphabetically, not by frequency, because the question you are asking is "is my letter in
 here" and frequency order puts the answer somewhere unpredictable. The second row lists
-**everything** rather than a sample: "not in the twelve I showed you" is not an answer.
+**everything** rather than a sample: "not in the twelve I showed you" is not an answer. The top
+row is separated by middots rather than spaces — four letters in alphabetical order read as a
+word often enough to matter, and `l o s t` was the one that made the point.
 
 **Nothing here assumes you will memorise the codes.** MacKenzie's participants reached about 20
 wpm after ten sessions, and that may well happen, but it is not designed for: the guide is
@@ -159,11 +161,14 @@ six, and why neither is a character.
 
 ### Digits
 
-Digits are **not** in the main tree at all, and the second layer holds nothing but digits — ten
-symbols in twelve two-press slots, so **every digit costs exactly two presses**. `↑←` gets you
-there in two. The layer is **sticky**: it stays until you press `BACK` or type a space, and a
-space inside it both types itself and leaves — so `blade runner 2049 remastered` pays for going
-in and nothing for coming back.
+Digits are **not** in the main tree at all. The second layer holds the ten digits plus a full
+stop and a comma — twelve symbols in exactly twelve two-press slots, so **everything there costs
+two presses and no direction pair leads nowhere**. `↑←` gets you there, and `↑←` gets you back:
+the reserved branch is the same four positions in both layers.
+
+The layer is **sticky**: it stays until you press `BACK` or type a space, and a space inside it
+both types itself and leaves — so `blade runner 2049 remastered` pays for going in and nothing
+for coming back.
 
 Punctuation stays with the letters, not with the digits. There was briefly a setting that moved
 it to the layer in exchange for shorter letter codes, and it measured as a dead heat on held-out
