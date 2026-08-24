@@ -90,15 +90,11 @@ class Preferences(context: Context) {
     fun nextCharacterSet(): CharacterSet =
         CharacterSet.entries[(characterSet.ordinal + 1) % CharacterSet.entries.size]
 
-    /**
-     * Defaults to one tree for every language. See [TreeScope] — the per-language tree is
-     * better by under two per cent of a press and costs a second code table to memorise plus
-     * a mode that can be in the wrong position.
-     */
+    /** Defaults to a tree per language, which costs about 1% fewer presses. See [TreeScope]. */
     var treeScope: TreeScope
         get() = store.getString(KEY_TREE_SCOPE, null)
             ?.let { stored -> TreeScope.entries.firstOrNull { it.name == stored } }
-            ?: TreeScope.SHARED
+            ?: TreeScope.PER_LANGUAGE
         set(value) = store.edit().putString(KEY_TREE_SCOPE, value.name).apply()
 
     fun nextTreeScope(): TreeScope =

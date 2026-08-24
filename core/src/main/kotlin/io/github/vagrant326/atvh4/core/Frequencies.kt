@@ -127,7 +127,14 @@ object Weights {
         Symbol.Function.CARET_LEFT to 0.003,
         Symbol.Function.CARET_RIGHT to 0.003,
         Symbol.Function.LANGUAGE to 0.001,
-        Symbol.Function.LAYER to 0.002,
+
+        // Not a frequency estimate, and the only weight here that is openly a policy floor.
+        // At an honest 0.2% the layer switch sank to five presses, which made a seven-digit
+        // sideload code cost 19 presses and was the single worst thing about using this
+        // keyboard. This buys it a two-press code. The bill is one letter pushed from two
+        // presses to three, which the bench prices; entering a code three presses cheaper,
+        // every time, is worth more than that letter.
+        Symbol.Function.LAYER to 0.020,
     )
 
     val TEXT_FUNCTIONS: Set<Symbol.Function> = Symbol.Function.entries.toSet()

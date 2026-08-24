@@ -49,15 +49,21 @@ tasks.register<JavaExec>("bench") {
  */
 tasks.register<JavaExec>("codes") {
     group = "documentation"
-    description = "Prints the code table. -Planguage=pl, -Pset=letters."
+    description = "Prints the code table. -Planguage=pl, -Pset=letters, -Ptable=<path>."
     mainClass.set("io.github.vagrant326.atvh4.core.bench.CodesKt")
     classpath = sourceSets["test"].runtimeClasspath
     workingDir = rootProject.projectDir
     val language = providers.gradleProperty("language").orElse("pl")
     val set = providers.gradleProperty("set").orElse("full")
+    // -Ptable points the task at a table that is not the shipped one, which is how a candidate
+    // domain mix gets read out without copying files over the committed assets. Note that
+    // `--args` cannot do this job: Gradle appends argumentProviders *after* args, so the
+    // default below would win and the override would look like it had been ignored.
+    val table = providers.gradleProperty("table")
     argumentProviders.add {
         listOf(
-            "--table", "app/src/main/assets/frequencies-${language.get()}.bin",
+            "--table",
+            table.orNull ?: "app/src/main/assets/frequencies-${language.get()}.bin",
             "--set", set.get(),
         )
     }

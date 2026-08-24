@@ -113,8 +113,16 @@ class CodeTree private constructor(
 
     companion object {
 
-        /** How many symbols a branch names on the strip before it gives up and truncates. */
-        const val PREVIEW_LIMIT = 6
+        /**
+         * How many symbols a branch names on the strip before it gives up and truncates.
+         *
+         * Sized so the *first* press is never a guess. With the shipped tables the root's four
+         * branches hold about a dozen symbols each, and a truncated list is the one failure the
+         * guide must not have: a user who cannot see their letter has to pick a direction at
+         * random and walk back. Deeper branches are far smaller, so this bound only ever binds
+         * at the top.
+         */
+        const val PREVIEW_LIMIT = 12
 
         /**
          * @param weights every symbol the tree must be able to produce, with its frequency.

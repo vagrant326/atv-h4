@@ -38,20 +38,23 @@ enum class Layer {
 /**
  * Whether the enabled languages share one tree or each get their own.
  *
- * This is the trade docs/20-h4writer.md §3 asks to be measured, and the measurement did not
- * come out the way the design note expected. One tree per language is optimal for the
- * distribution it was built from, and `:core:bench` puts that advantage at under two per cent
- * of a press. The price is that only about a quarter of the codes come out the same in both
- * trees, so the user memorises two largely unrelated tables and every switch is a mode that
- * can be in the wrong position — where a wrong-language press produces a valid character, so
- * the mistake arrives looking like a typo.
+ * [PER_LANGUAGE] is the default because it wins on presses: measured on 2000 held-out titles
+ * per language it costs about 1% less than one merged tree, in both languages.
  *
- * Hence [SHARED] as the default, and [PER_LANGUAGE] kept because the published figures were
- * measured that way and the choice is the user's to make on their own text.
+ * It is worth recording why the other answer looked right first. The case for a merged tree was
+ * that two trees mean two tables to memorise and a language mode that can sit in the wrong
+ * position, where a wrong-language press emits a valid character and the mistake reads as a
+ * typo. Both of those are arguments about *memorised* typing. **This keyboard does not assume
+ * muscle memory** — the branch guide is treated as always-on, and a user reading the guide
+ * cannot make a mode error, because the guide shows the branches of the tree actually in force.
+ * So neither argument survives, and the decision falls to presses alone.
+ *
+ * [SHARED] stays for anyone who does stop reading the guide, where the reasoning above starts
+ * to apply again.
  */
 enum class TreeScope {
-    SHARED,
     PER_LANGUAGE,
+    SHARED,
 }
 
 /**

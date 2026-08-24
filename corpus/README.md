@@ -8,8 +8,16 @@ docker compose -f docker/compose.yaml run --rm -w /work/atv-h4/corpus dev \
   python3 fetch.py --language pl --megabytes 12
 
 docker compose -f docker/compose.yaml run --rm -w /work/atv-h4/corpus dev \
-  python3 count.py --language pl
+  python3 count.py --language pl --title-weight 200
 ```
+
+**`--title-weight 200` is what the shipped tables are built with, and it is not a detail.**
+Subtitles average 5.7 words per line; a TV query averages 2.0. Left at weight 1 the corpus
+says space is 16% of characters, Huffman gives it a one-press code and a quarter of the whole
+code space, and the tree is wrong at the top. Weighted to 200 the mix says 11.5%, space costs
+two presses and twelve characters become reachable in two instead of eight. 200 is where
+Polish stops improving — past it, titles displace ordinary orthography. See
+`docs/20-h4writer.md §8` for the held-out measurement.
 
 `fetch.py` writes to `raw/`, which is gitignored. `count.py` writes
 `app/src/main/assets/frequencies-<language>.bin`, which **is** committed: it is under a

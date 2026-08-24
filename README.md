@@ -26,8 +26,16 @@ have no number keys and cannot run the companion project
 [`atv-letterwise`](https://github.com/vagrant326/atv-letterwise) at all.
 
 There is no long press anywhere in the typing path either. Deleting, moving the caret,
-switching language and reaching the digits are all *codes*, not keys: they sit in the same
-tree as the letters and are reached the same way.
+switching language and reaching the digits are all *codes*, not keys: they sit in the same tree
+as the letters and are reached the same way. Every assignable button is optional, including the
+digit one — and a field that asks for numbers switches to the digit layer by itself, so nothing
+about digits depends on having a spare key.
+
+`BACK` is the one non-d-pad key that is load-bearing, for exactly two things: abandoning a
+half-finished character and closing the keyboard. Abandoning **cannot** be a code — you are
+mid-code, so every further press leads to some leaf, never to a cancel — so it needs a key
+outside the tree. The Android TV compatibility definition requires `BACK` on every remote, so
+this is safe, but it is worth stating rather than hiding inside the claim of d-pad-only.
 
 ## How it types
 
@@ -41,37 +49,42 @@ The guide above the field shows what each direction leads to **from where you ar
 you never have to know a code in advance: press towards the letter you want and read the next
 step. Settings → Guide switches between the full cross, one compact line, and off.
 
-That guide is meant to become unnecessary. A Huffman code cannot be guessed from anything you
-already know and a TV remote has nothing printed on it, so the first session is slow —
-MacKenzie's participants reached about 20 wpm after ten sessions. The whole bet of this
-keyboard is that the guide is a transitional cost while a predictive keyboard's
-check-the-prediction step never goes away.
+**Nothing here assumes you will memorise the codes.** MacKenzie's participants reached about 20
+wpm after ten sessions, and that may well happen, but it is not designed for: the guide is
+treated as permanently on, it is sized so the first press is never a guess, and every trade-off
+in the tree is settled on presses rather than on what would be easier to remember. If your
+thumb does learn it, you turn the guide off and get the screen space back.
 
 ### The code table, English
 
 Straight out of `./gradlew :core:codes -Planguage=en`:
 
 ```
-↑     space
-←↑ a   ←← e   ←→ i   ←↓ n
-→↑ o   →← r   →→ s   →↓ t
-↓↑↑ delete   ↓↑← ,   ↓↑→ .   ↓↑↓ b
-↓←↑ c   ↓←← d   ↓←→ f   ↓←↓ g
-↓→↑ h   ↓→← l   ↓→→ m   ↓→↓ u
-↓↓↑ w   ↓↓← y                       …and four or five presses for the rest
+↑↑ space   ↑← a   ↑→ d   ↑↓ e
+←↑ h       ←← i   ←→ l   ←↓ n
+→↑ o       →← r   →→ s   →↓ t
+↓↑↑ delete   ↓↑← digits   …and three to six presses for the rest
 ```
 
-Expected **2.248 presses per character** for English, **2.412** for Polish. The full table is
-in the app, under Settings → Codes, because on this keyboard the table *is* the interface and
-a reference you can reach from the sofa is part of the product.
+Twelve characters on two presses, nothing on one. Expected **2.316 presses per character** for
+English, **2.421** for Polish, deepest code **6** in both. The full table is in the app, under
+Settings → Codes, because on this keyboard the table *is* the interface and a reference you can
+reach from the sofa is part of the product.
+
+Space gets two presses, not one, and that is the corpus talking. At 18.9% — its share in
+running speech — Huffman gives it one press and a quarter of the whole code space. But a TV
+query is one to three words: space is **8.9%** of the characters in the real query corpus, and
+seven of nineteen queries contain no space at all. Fitted to that, space earns two presses, the
+first press opens into a branch instead of a leaf, and the number of characters reachable in
+two presses doubles from eight to twelve. Details in `docs/20-h4writer.md §8`.
 
 ### Everything is a code
 
-| Function | Cost in English |
+| Function | Cost |
 |---|---|
 | delete | 3 presses |
+| digit layer | 3 presses in, 3 back |
 | caret left / right | 4 presses |
-| digit layer | 5 presses in, 3 back |
 | language switch | 5 presses |
 
 Rare things pay for being rare, which is the method working as intended. If your remote has
@@ -80,10 +93,15 @@ three — worth doing, because deleting is the correction you make most.
 
 ### Digits
 
-Digits are in the main tree, at four or five presses each. For a *run* of them — a PIN, a
-pairing code, the seven digits of a Downloader shortcode — there is a second layer where
-digits cost two presses and punctuation three. A field that declares itself numeric opens in
-it; otherwise it is a code away.
+Digits are in the main tree, at four to six presses each. For a *run* of them — a PIN, a
+pairing code, the seven digits of a Downloader shortcode — there is a second layer where digits
+cost two presses and punctuation three. A field that declares itself numeric **opens in that
+layer by itself**; otherwise it is three presses away, and a button for it is optional like
+everything else.
+
+A seven-digit sideload code therefore costs 3 + 14 = 17 presses. The layer switch is the one
+weight in the frequency table that is openly a policy floor rather than an estimate — at its
+honest frequency it sank to five presses, which made that code cost 19.
 
 ### Diacritics
 
@@ -94,29 +112,29 @@ method takes them without an argument.
 Everything is typable: proper nouns, film titles, invented words, passwords. There is no
 dictionary to be missing from.
 
-## One code table, or one per language
+## One code table per language
 
 Both Polish and English are supported, and adding a language is one enum entry plus one
 frequency table (see [`corpus/README.md`](corpus/README.md)).
 
-By default they **share a single tree**, built from both languages' frequencies together. The
-alternative — a tree fitted to each language — is what the design note originally called for,
-and it is available under Settings → Code table. The measurement is why the default went the
-other way:
+Each gets **its own tree**, fitted to its own letter frequencies. Measured on 2000 held-out
+titles per language:
 
 | | Polish | English |
 |---|---|---|
-| One tree per language | 2.412 | 2.248 |
-| One tree for both | 2.449 | 2.293 |
+| One tree per language | **2.275** | **2.257** |
+| One tree for both | 2.298 | 2.285 |
 
-Under 2% of a press. And the two per-language trees have only **27% of their codes in common**
-— so the cost of the optimum is a second table to memorise and a mode that can be in the
-wrong position, where a wrong-language press types a real character and the mistake arrives
-looking like a typo. With one tree there is no language to switch, so there is nothing to have
-set wrongly.
+About 1% either way, consistently in the same direction. The merged tree is available under
+Settings → Code table, and there is a real case for it — but it is a case about *memorised*
+typing: one table to learn, and no language mode that can sit in the wrong position emitting
+valid-but-wrong characters. Since nothing here assumes memorisation, and a user reading the
+guide cannot make a mode error at all, the decision falls to presses.
 
-(27% is with the code assignment pinned so the two trees agree wherever they can, which costs
-no presses at all. Ordering by frequency instead — the obvious choice — gives 14%.)
+For the record, the two per-language trees have only about **20% of their codes in common**,
+even with the assignment pinned so they agree wherever their code lengths allow — which costs
+no presses at all, and beats ordering by frequency. So if you do stop reading the guide, switch
+to the merged tree; the argument reverses at that point.
 
 ## Netflix and YouTube need one thing set up
 

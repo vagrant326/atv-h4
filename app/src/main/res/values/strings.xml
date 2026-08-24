@@ -33,17 +33,17 @@
     <string name="hint_off_description">Nothing. Turn this off once your thumb knows the codes — until then there is no other reminder, because nothing is printed on the remote.</string>
 
     <string name="settings_character_set">Characters</string>
-    <string name="settings_character_set_warning">Changing this rebuilds every code. Whatever you have learnt moves.</string>
+    <string name="settings_character_set_warning">Changing this rebuilds every code. Harmless while you are reading the guide — it only costs you something once you have stopped.</string>
     <string name="set_full">Everything</string>
     <string name="set_full_description">Letters, space, punctuation and digits in one tree. Nothing needs a mode switch.</string>
     <string name="set_letters">Letters only</string>
     <string name="set_letters_description">Letters and space. Shorter codes for the letters; punctuation and digits move to the digit layer.</string>
 
     <string name="settings_tree_scope">Code table</string>
-    <string name="scope_shared">One for all languages</string>
-    <string name="scope_shared_description">One table to learn, and no language to switch — so it can never be in the wrong position. Costs under two hundredths of a press per character.</string>
     <string name="scope_per_language">One per language</string>
-    <string name="scope_per_language_description">Every language gets codes fitted to its own letter frequencies. Marginally fewer presses, two tables to learn, and a switch that can be wrong — a wrong-language press types a real character, so the mistake looks like a typo.</string>
+    <string name="scope_per_language_description">Codes fitted to each language\'s own letter frequencies. About a per cent fewer presses, measured on held-out titles.</string>
+    <string name="scope_shared">One for all languages</string>
+    <string name="scope_shared_description">One table covering every language, and no language to switch. About a per cent more presses. Worth it only once you have stopped reading the guide, where a switch sitting in the wrong position starts to bite.</string>
 
     <string name="binding_delete">Delete button</string>
     <string name="binding_delete_prompt">Press the button you want for deleting</string>

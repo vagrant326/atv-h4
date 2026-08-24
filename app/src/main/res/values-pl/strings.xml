@@ -10,17 +10,17 @@
     <string name="hint_off_description">Nic. Wyłącz, kiedy kciuk zna już kody — do tego czasu nie ma innej podpowiedzi, bo na pilocie nic nie jest nadrukowane.</string>
 
     <string name="settings_character_set">Znaki</string>
-    <string name="settings_character_set_warning">Zmiana przebudowuje wszystkie kody. To, czego się nauczyłeś, przestaje się zgadzać.</string>
+    <string name="settings_character_set_warning">Zmiana przebudowuje wszystkie kody. Dopóki czytasz podpowiedź, nic to nie kosztuje — zacznie, kiedy przestaniesz.</string>
     <string name="set_full">Wszystko</string>
     <string name="set_full_description">Litery, spacja, interpunkcja i cyfry w jednym drzewie. Nic nie wymaga przełączania trybu.</string>
     <string name="set_letters">Tylko litery</string>
     <string name="set_letters_description">Litery i spacja. Krótsze kody dla liter; interpunkcja i cyfry przenoszą się do warstwy cyfr.</string>
 
     <string name="settings_tree_scope">Tabela kodów</string>
-    <string name="scope_shared">Jedna na wszystkie języki</string>
-    <string name="scope_shared_description">Jedna tabela do nauczenia i żaden język do przełączania — więc nie da się go mieć ustawionego źle. Kosztuje mniej niż dwie setne naciśnięcia na znak.</string>
     <string name="scope_per_language">Osobna na język</string>
-    <string name="scope_per_language_description">Każdy język dostaje kody dopasowane do własnych częstości liter. Minimalnie mniej naciśnięć, dwie tabele do nauczenia i przełącznik, który może być ustawiony źle — naciśnięcie w złym języku wpisuje prawdziwy znak, więc pomyłka wygląda jak literówka.</string>
+    <string name="scope_per_language_description">Kody dopasowane do własnych częstości liter każdego języka. Około procent mniej naciśnięć, zmierzone na odłożonych tytułach.</string>
+    <string name="scope_shared">Jedna na wszystkie języki</string>
+    <string name="scope_shared_description">Jedna tabela na wszystkie języki i żaden język do przełączania. Około procent więcej naciśnięć. Opłaca się dopiero, kiedy przestaniesz czytać podpowiedź — wtedy przełącznik w złej pozycji zaczyna boleć.</string>
 
     <string name="binding_delete">Klawisz usuwania</string>
     <string name="binding_delete_prompt">Naciśnij klawisz, którym chcesz usuwać</string>

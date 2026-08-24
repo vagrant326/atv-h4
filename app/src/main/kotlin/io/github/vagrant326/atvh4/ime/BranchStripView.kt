@@ -251,9 +251,12 @@ class BranchStripView(context: Context) : LinearLayout(context) {
         }
 
     private fun buildCross(): View {
+        // Wide enough for a full first-press branch — about a dozen symbols — because a
+        // truncated branch forces a guess, and this keyboard assumes the guide is being read
+        // rather than recalled.
         val cross = LinearLayout(context).apply {
             orientation = VERTICAL
-            layoutParams = LayoutParams(dp(330), LayoutParams.WRAP_CONTENT)
+            layoutParams = LayoutParams(dp(432), LayoutParams.WRAP_CONTENT)
         }
         cross.addView(crossRow(null, cell(Direction.UP), null))
         cross.addView(crossRow(cell(Direction.LEFT), centre, cell(Direction.RIGHT)))
@@ -277,7 +280,7 @@ class BranchStripView(context: Context) : LinearLayout(context) {
 
     private fun cell(direction: Direction) = TextView(context).apply {
         setTextColor(DIM)
-        setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
         gravity = Gravity.CENTER
         isSingleLine = true
         ellipsize = TextUtils.TruncateAt.END

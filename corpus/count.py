@@ -54,11 +54,11 @@ def count(language: str, raw: str, title_weight: int) -> Counter:
         weight = title_weight if os.path.basename(path).startswith("titles-") else 1
         with open(path, encoding="utf-8") as handle:
             for line in handle:
-                # Every line is a sentence or a title, so it ends at a word boundary. The
-                # trailing space is what gives space its true share: without it a 40-character
-                # line contributes one space fewer than it costs to type.
-                text = line.rstrip("\n") + " "
-                for character in text:
+                # No trailing space. A line is one thing somebody types into one field, and a
+                # query ends with the centre button, not with a space. Appending one was wrong
+                # and expensively so: it lands hardest on short lines, inflating space by 5.8
+                # points on titles, which is exactly the domain this keyboard is for.
+                for character in line.rstrip("\n"):
                     if character in alphabet:
                         counts[character] += weight
 
