@@ -86,6 +86,11 @@ The other three directions carry the characters. Straight out of `./gradlew :cor
 ↓↑ l   ↓← o   ↓→ s   ↓↓ t          …and three to six presses for the rest
 ```
 
+Functions are written `[del]`, `[123]`, `[edit]` — bracketed and in their own colour everywhere
+they appear. In a branch preview the characters run together with no separator to fit a dozen in
+one cell, so a bare `DEL` reads as the letters d, e and l, which is the wrong answer to the only
+question the guide is asked.
+
 Expected **2.424 presses per character** for English, **2.528** for Polish, deepest code **6**
 in both. The full table is in the app, under Settings → Codes, because on this keyboard the
 table *is* the interface and a reference you can reach from the sofa is part of the product.
@@ -135,10 +140,16 @@ six, and why neither is a character.
 
 ### Digits
 
-Digits are **not** in the main tree at all. They live in the second layer, where every digit is
-two presses, and `↑←` gets you there in two. The layer is **sticky**: it stays until you press
-`BACK` or type a space, and a space inside it both types itself and leaves — so `blade runner
-2049 remastered` pays for going in and nothing for coming back.
+Digits are **not** in the main tree at all, and the second layer holds nothing but digits — ten
+symbols in twelve two-press slots, so **every digit costs exactly two presses**. `↑←` gets you
+there in two. The layer is **sticky**: it stays until you press `BACK` or type a space, and a
+space inside it both types itself and leaves — so `blade runner 2049 remastered` pays for going
+in and nothing for coming back.
+
+Punctuation stays with the letters, not with the digits. There was briefly a setting that moved
+it to the layer in exchange for shorter letter codes, and it measured as a dead heat on held-out
+titles — 2.361 against 2.363 for English — because the layer trips cost what the shorter letters
+saved. A setting that rebuilds every code for nothing is worse than no setting.
 
 A seven-digit sideload code therefore costs 2 + 14 = **16 presses**. A field that declares
 itself numeric opens in the layer by itself, and a button for it is optional like every other

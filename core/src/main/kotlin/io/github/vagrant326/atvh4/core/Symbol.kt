@@ -21,14 +21,19 @@ sealed interface Symbol {
         override val label: String get() = if (value == ' ') "_" else value.toString()
     }
 
+    /**
+     * Bracketed, everywhere, including here. In a branch preview the characters run together
+     * with no separator, so a bare `DEL` reads as the letters d, e and l — which is the wrong
+     * answer to the only question the guide is asked: what does this direction type?
+     */
     enum class Function(override val label: String) : Symbol {
-        BACKSPACE("DEL"),
+        BACKSPACE("[del]"),
 
         /** To the digit layer and back. */
-        LAYER("#"),
+        LAYER("[123]"),
 
         /** To the edit mode: caret, delete, language. */
-        EDIT("EDIT"),
+        EDIT("[edit]"),
     }
 
     companion object {

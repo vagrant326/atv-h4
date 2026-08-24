@@ -5,21 +5,6 @@ import java.io.DataOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 
-/** Which characters the text layer's tree carries. Digits are never among them. */
-enum class CharacterSet {
-    /**
-     * Letters only. Shorter codes for the letters; punctuation joins the digits in the second
-     * layer and costs the switch there and back.
-     */
-    LETTERS,
-
-    /**
-     * Letters and the seven punctuation marks. The default: an apostrophe in the middle of a
-     * title is not worth a layer switch.
-     */
-    FULL,
-}
-
 /**
  * Character counts for one language, as built by `corpus/count.py`.
  *
@@ -138,52 +123,45 @@ object Weights {
         Direction.DOWN to Symbol.Function.BACKSPACE,
     )
 
-    /** Characters only: no functions, no space, no digits. All four live elsewhere. */
-    fun text(table: FrequencyTable, set: CharacterSet): Map<Symbol, Long> {
+    /**
+     * Letters and punctuation: no functions, no space, no digits. All four live elsewhere.
+     *
+     * Punctuation belongs **here**, not with the digits. There was briefly a setting that moved
+     * it to the second layer in exchange for shorter letter codes, and it measured as a dead
+     * heat on held-out titles — 2.361 against 2.363 for English, 2.397 against 2.395 for Polish
+     * — because the layer trips cost exactly what the shorter letters saved. A setting that
+     * rebuilds every code for nothing is worse than no setting, so it went, and with it the
+     * reason the digit layer ever carried an apostrophe.
+     */
+    fun text(table: FrequencyTable): Map<Symbol, Long> {
         val weights = LinkedHashMap<Symbol, Long>()
         for ((character, count) in table.counts) {
-            if (character.isLetter() || (set == CharacterSet.FULL && character in Symbol.PUNCTUATION)) {
+            if (character.isLetter() || character in Symbol.PUNCTUATION) {
                 weights[Symbol.Character(character)] = count
             }
         }
-        // A mark the corpus never produced still has to be typable, so the set decides
-        // membership and the count only decides depth.
-        if (set == CharacterSet.FULL) {
-            for (mark in Symbol.PUNCTUATION) {
-                weights.getOrPut(Symbol.Character(mark)) { 0L }
-            }
-        }
-        return weights
-    }
-
-    /**
-     * The second layer: digits and punctuation.
-     *
-     * Digits are weighted equally and above the marks. That is not a fabricated frequency, it
-     * is the absence of one stated honestly — there is no corpus of "digits a person types into
-     * a TV", and the ordering that matters is only that a run of digits, the reason this layer
-     * exists, lands at two presses.
-     *
-     * Punctuation is here as well as in the full text tree. The redundancy is deliberate: the
-     * layer has to be self-sufficient for [CharacterSet.LETTERS], where it is the only route to
-     * an apostrophe.
-     */
-    fun digitLayer(): Map<Symbol, Long> {
-        val weights = LinkedHashMap<Symbol, Long>()
-        for (digit in Symbol.DIGITS) {
-            weights[Symbol.Character(digit)] = DIGIT_WEIGHT
-        }
+        // A mark the corpus never produced still has to be typable, so membership is fixed and
+        // the count only decides depth.
         for (mark in Symbol.PUNCTUATION) {
-            weights[Symbol.Character(mark)] = MARK_WEIGHT
+            weights.getOrPut(Symbol.Character(mark)) { 0L }
         }
         return weights
     }
 
     /**
-     * Arbitrary in absolute terms — only the ratio reaches Huffman, and there are no shares
-     * taken against a total any more, so the scale never shows up anywhere.
+     * The second layer: ten digits, and nothing else to compete with them.
+     *
+     * Ten characters over three carrying branches fit in twelve two-press slots exactly, so
+     * **every digit costs two presses** — which is the entire reason the layer exists, since a
+     * run of digits is a PIN, a pairing code or a seven-digit sideload code.
+     *
+     * The weight is uniform because there is no corpus of "digits a person types into a TV".
+     * That is the absence of information stated honestly rather than a fabricated frequency, and
+     * with ten symbols in twelve slots it changes nothing anyway.
      */
-    private const val DIGIT_WEIGHT = 1000L
+    fun digitLayer(): Map<Symbol, Long> =
+        Symbol.DIGITS.associate { Symbol.Character(it) to DIGIT_WEIGHT }
 
-    private const val MARK_WEIGHT = 200L
+    /** Arbitrary: only ratios reach Huffman, and with a uniform table there are none. */
+    private const val DIGIT_WEIGHT = 1L
 }

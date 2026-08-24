@@ -151,25 +151,30 @@ class CodeTreeTest {
         assertNotNull(tree.codeOf(Symbol.Character('&')), "an unseen mark lost its code")
     }
 
+    /**
+     * Ten digits over three carrying branches is ten symbols in twelve two-press slots, so
+     * every digit costs exactly two — which is the entire reason the layer exists. Punctuation
+     * is deliberately not here; it lives in the text tree.
+     */
     @Test
-    fun `the digit layer carries every digit and every mark`() {
+    fun `every digit in the layer is two presses`() {
         val layer = CodeTree.withControlBranch(
             Weights.digitLayer(),
             Weights.DIGIT_CONTROL_BRANCH,
         )
 
-        for (character in Symbol.DIGITS + Symbol.PUNCTUATION) {
-            assertNotNull(layer.codeOf(Symbol.Character(character)), "'$character' has no code")
+        for (digit in Symbol.DIGITS) {
+            assertEquals(
+                2,
+                requireNotNull(layer.codeOf(Symbol.Character(digit))).size,
+                "'$digit'",
+            )
         }
-        assertEquals(
-            2,
-            requireNotNull(layer.codeOf(Symbol.Character('7'))).size,
-            "a run of digits is the reason this layer exists",
-        )
+        assertNull(layer.codeOf(Symbol.Character('&')), "a mark reached the digit layer")
     }
 
     private fun controlTree(text: String) = CodeTree.withControlBranch(
-        Weights.text(FrequencyTable.of(text), CharacterSet.FULL),
+        Weights.text(FrequencyTable.of(text)),
         Weights.CONTROL_BRANCH,
     )
 

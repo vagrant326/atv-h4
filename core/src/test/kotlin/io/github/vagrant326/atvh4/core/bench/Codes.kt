@@ -1,6 +1,5 @@
 package io.github.vagrant326.atvh4.core.bench
 
-import io.github.vagrant326.atvh4.core.CharacterSet
 import io.github.vagrant326.atvh4.core.CodeTree
 import io.github.vagrant326.atvh4.core.Direction
 import io.github.vagrant326.atvh4.core.FrequencyTable
@@ -30,16 +29,12 @@ fun main(arguments: Array<String>) {
         System.err.println("no frequency table at $path; run corpus/count.py first")
         return
     }
-    val set = when (options["set"]?.lowercase()) {
-        "letters" -> CharacterSet.LETTERS
-        else -> CharacterSet.FULL
-    }
     val table = file.inputStream().use { FrequencyTable.read(it) }
-    val weights = Weights.text(table, set)
+    val weights = Weights.text(table)
     val tree = CodeTree.withControlBranch(weights, Weights.CONTROL_BRANCH)
 
     println()
-    println("$path, ${set.name.lowercase()}: ${tree.symbols.size} symbols, deepest ${tree.depth}")
+    println("$path: ${tree.symbols.size} symbols, deepest ${tree.depth}")
     println("expected %.3f presses per character".format(tree.meanCodeLength(weights)))
     println()
 

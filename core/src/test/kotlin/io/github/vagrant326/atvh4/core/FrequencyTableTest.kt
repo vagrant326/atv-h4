@@ -42,7 +42,7 @@ class FrequencyTableTest {
     @Test
     fun `polish diacritics get their own codes`() {
         val tree = CodeTree.of(
-            Weights.text(FrequencyTable.of(POLISH), CharacterSet.FULL)
+            Weights.text(FrequencyTable.of(POLISH))
         )
 
         for (letter in "ąćęłńóśźż") {

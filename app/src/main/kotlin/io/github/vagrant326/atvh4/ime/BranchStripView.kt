@@ -132,21 +132,28 @@ class BranchStripView(context: Context) : LinearLayout(context) {
 
         // The edit mode is not a tree: one press, one action. So the guide names the actions
         // rather than drawing branches, which is also the honest picture of what changed.
-        val labels = if (state.mode == Mode.EDIT) {
-            Direction.entries.associateWith { editLabel(it) }
+        val labels: Map<Direction, CharSequence> = if (state.mode == Mode.EDIT) {
+            // In the edit mode every direction is a function, so the whole legend is coloured
+            // as one rather than bracketed item by item.
+            Direction.entries.associateWith { colour(editLabel(it), FUNCTION) }
         } else {
             val branches = state.coder.branches
             Direction.entries.associateWith { branch(branches[it.ordinal]) }
         }
 
         if (inlineHint.visibility == VISIBLE) {
-            inlineHint.text = Direction.entries.joinToString("   ") { "${it.arrow}${labels[it]}" }
+            inlineHint.text = SpannableStringBuilder().apply {
+                for (direction in Direction.entries) {
+                    append(direction.arrow).append(labels.getValue(direction)).append("   ")
+                }
+            }
             return
         }
 
         for (direction in Direction.entries) {
             val cell = cells.getValue(direction)
-            cell.text = "${direction.arrow} ${labels[direction]}"
+            cell.text = SpannableStringBuilder("${direction.arrow} ")
+                .append(labels.getValue(direction))
             val resolved = state.mode == Mode.EDIT ||
                 state.coder.branches[direction.ordinal] is Node.Leaf
             cell.setTextColor(if (resolved) ACCENT else DIM)
@@ -182,26 +189,39 @@ class BranchStripView(context: Context) : LinearLayout(context) {
     )
 
     /** A leaf names its symbol; a branch names the heaviest symbols underneath it. */
-    private fun branch(node: Node?): String = when (node) {
+    private fun branch(node: Node?): CharSequence = when (node) {
         null -> context.getString(R.string.strip_dead_branch)
         is Node.Leaf -> display(node.symbol)
-        is Node.Branch -> node.preview.joinToString("") { display(it) } + "…"
+        is Node.Branch -> SpannableStringBuilder().apply {
+            for (symbol in node.preview) {
+                append(display(symbol))
+            }
+            append("…")
+        }
     }
 
     /**
-     * Short enough to sit in a preview beside eleven others. Not translated: these stand for
-     * keys, and a two-letter abbreviation that changed with the system language would be a
-     * different symbol to learn per locale.
+     * Characters as themselves; functions bracketed and in their own colour.
+     *
+     * The separation is not decoration. Characters in a branch preview run together with no
+     * separator — twelve of them have to fit one cell — so an unbracketed `DEL` sitting among
+     * them reads as the letters d, e and l, which is exactly the wrong thing to tell someone
+     * who is reading the guide to find out what a direction types.
+     *
+     * The function names are not translated: they stand for keys, and an abbreviation that
+     * changed with the system language would be a different symbol to learn per locale.
      */
-    private fun display(symbol: Symbol): String = when (symbol) {
+    private fun display(symbol: Symbol): CharSequence = when (symbol) {
         is Symbol.Character ->
             if (symbol.value == ' ') context.getString(R.string.symbol_space)
             else symbol.value.toString()
 
-        Symbol.Function.BACKSPACE -> context.getString(R.string.symbol_backspace)
-        Symbol.Function.LAYER -> context.getString(R.string.symbol_layer)
-        Symbol.Function.EDIT -> context.getString(R.string.symbol_edit)
+        Symbol.Function.BACKSPACE -> function(R.string.symbol_backspace)
+        Symbol.Function.LAYER -> function(R.string.symbol_layer)
+        Symbol.Function.EDIT -> function(R.string.symbol_edit)
     }
+
+    private fun function(resource: Int) = colour(context.getString(resource), FUNCTION)
 
     private fun statusRow(state: StripState): CharSequence {
         if (state.showLanguageChooser) {
@@ -365,5 +385,8 @@ class BranchStripView(context: Context) : LinearLayout(context) {
         const val ACCENT = 0xFF7FD1FF.toInt()
         const val WARNING = 0xFFEF9F27.toInt()
         const val CELL = 0xFF1A1A22.toInt()
+
+        /** Functions, so they never read as characters. Distinct from the accent and the warning. */
+        const val FUNCTION = 0xFFB6A0FF.toInt()
     }
 }

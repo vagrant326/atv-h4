@@ -20,7 +20,6 @@ import android.widget.ScrollView
 import android.widget.TextView
 import io.github.vagrant326.atvh4.BuildConfig
 import io.github.vagrant326.atvh4.R
-import io.github.vagrant326.atvh4.core.CharacterSet
 import io.github.vagrant326.atvh4.ime.KeyBindings
 import io.github.vagrant326.atvh4.model.Language
 import io.github.vagrant326.atvh4.model.TreeScope
@@ -66,7 +65,6 @@ class SettingsActivity : Activity() {
 
         content.addView(sectionLabel(getString(R.string.settings_section_keyboard)))
         content.addView(hintModeRow())
-        content.addView(characterSetRow())
         content.addView(treeScopeRow())
 
         content.addView(sectionLabel(getString(R.string.settings_section_codes)))
@@ -207,43 +205,6 @@ class SettingsActivity : Activity() {
     }
 
     /**
-     * The one setting here that changes every code in the tree, and therefore the one that
-     * costs the user everything they have memorised. The warning under it is not boilerplate.
-     */
-    private fun characterSetRow(): View {
-        lateinit var value: TextView
-        lateinit var explain: TextView
-
-        val control = row(
-            getString(R.string.settings_character_set),
-            getString(labelOf(preferences.characterSet)),
-        ) {
-            preferences.characterSet = preferences.nextCharacterSet()
-            value.text = getString(labelOf(preferences.characterSet))
-            explain.text = getString(descriptionOf(preferences.characterSet))
-        }
-        value = control.getChildAt(1) as TextView
-        explain = caption(getString(descriptionOf(preferences.characterSet)))
-
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            addView(control)
-            addView(explain)
-            addView(caption(getString(R.string.settings_character_set_warning)))
-        }
-    }
-
-    private fun labelOf(set: CharacterSet) = when (set) {
-        CharacterSet.FULL -> R.string.set_full
-        CharacterSet.LETTERS -> R.string.set_letters
-    }
-
-    private fun descriptionOf(set: CharacterSet) = when (set) {
-        CharacterSet.FULL -> R.string.set_full_description
-        CharacterSet.LETTERS -> R.string.set_letters_description
-    }
-
-    /**
      * One tree for every language or one each. The measured difference is under two per cent
      * of a press, so the description talks about the thing that is actually at stake — how many
      * code tables the user has to hold in their thumb.
@@ -267,7 +228,7 @@ class SettingsActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             addView(control)
             addView(explain)
-            addView(caption(getString(R.string.settings_character_set_warning)))
+            addView(caption(getString(R.string.settings_codes_change_warning)))
         }
     }
 

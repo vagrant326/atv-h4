@@ -339,14 +339,12 @@ class H4ImeService : InputMethodService() {
     private fun currentTree(): CodeTree =
         if (mode == Mode.DIGITS) trees.digitTree else textTree()
 
-    private fun textTree(): CodeTree {
-        val set = preferences.characterSet
-        return if (preferences.treeScope == TreeScope.SHARED) {
-            trees.sharedTree(preferences.enabledLanguages, set)
+    private fun textTree(): CodeTree =
+        if (preferences.treeScope == TreeScope.SHARED) {
+            trees.sharedTree(preferences.enabledLanguages)
         } else {
-            trees.textTree(language, set)
+            trees.textTree(language)
         }
-    }
 
     private fun render() {
         strip?.update(

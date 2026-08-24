@@ -1,6 +1,5 @@
 package io.github.vagrant326.atvh4.core.bench
 
-import io.github.vagrant326.atvh4.core.CharacterSet
 import io.github.vagrant326.atvh4.core.CodeTree
 import io.github.vagrant326.atvh4.core.FrequencyTable
 import io.github.vagrant326.atvh4.core.Ordering
@@ -14,9 +13,12 @@ import java.io.File
  * Measures KSPC over a query corpus, using the same tree construction the keyboard runs.
  *
  * There is no model column and nothing to compare against a uniform baseline: the method is
- * deterministic, so the only things that can differ are the frequency table the tree was built
- * from and which characters it carries. That is what this reports — one tree per language
- * against a single merged tree, and letters-with-punctuation against letters alone.
+ * deterministic, so the only thing left that can differ is the frequency table the tree was
+ * built from. That is what this reports — one tree per language against a single merged tree.
+ *
+ * There used to be a third column, for a tree of letters alone with punctuation exiled to the
+ * digit layer. It measured as a dead heat and the setting went; the layer trips cost exactly
+ * what the shorter letter codes saved.
  *
  * The pinned code assignment does not appear as a KSPC row, because it cannot change one: it
  * reorders codes within a length class and leaves every length alone. What it changes is the
@@ -28,14 +30,13 @@ import java.io.File
 private data class Query(val text: String, val language: String)
 
 private class Report(val label: String) {
-    var full: TrialResult = TrialResult.EMPTY
-    var letters: TrialResult = TrialResult.EMPTY
+    var own: TrialResult = TrialResult.EMPTY
     var merged: TrialResult = TrialResult.EMPTY
     val worst = ArrayList<Pair<String, Double>>()
 }
 
-private fun textTree(table: FrequencyTable, set: CharacterSet, ordering: Ordering = Ordering.PINNED) =
-    CodeTree.withControlBranch(Weights.text(table, set), Weights.CONTROL_BRANCH, ordering = ordering)
+private fun textTree(table: FrequencyTable, ordering: Ordering = Ordering.PINNED) =
+    CodeTree.withControlBranch(Weights.text(table), Weights.CONTROL_BRANCH, ordering = ordering)
 
 fun main(arguments: Array<String>) {
     val options = arguments.toList().chunked(2)
@@ -59,9 +60,8 @@ fun main(arguments: Array<String>) {
 
     val digits = CodeTree.withControlBranch(Weights.digitLayer(), Weights.DIGIT_CONTROL_BRANCH)
     val mergedTable = FrequencyTable.merge(tables.values)
-    val mergedTree = textTree(mergedTable, CharacterSet.FULL)
-    val trees = tables.mapValues { (_, table) -> textTree(table, CharacterSet.FULL) }
-    val letterTrees = tables.mapValues { (_, table) -> textTree(table, CharacterSet.LETTERS) }
+    val mergedTree = textTree(mergedTable)
+    val trees = tables.mapValues { (_, table) -> textTree(table) }
 
     val reports = linkedMapOf("pl" to Report("Polish"), "en" to Report("English"))
 
@@ -74,49 +74,43 @@ fun main(arguments: Array<String>) {
         val report = reports.getValue(target)
 
         val outcome = runCatching {
-            Triple(
-                Simulator(trees.getValue(target), digits).run(query.text),
-                Simulator(letterTrees.getValue(target), digits).run(query.text),
-                Simulator(mergedTree, digits).run(query.text),
-            )
+            Simulator(trees.getValue(target), digits).run(query.text) to
+                Simulator(mergedTree, digits).run(query.text)
         }
         if (outcome.isFailure) {
             System.err.println("untypable: ${query.text}  (${outcome.exceptionOrNull()?.message})")
             untypable++
             continue
         }
-        val (full, letters, merged) = outcome.getOrThrow()
-        report.full += full
-        report.letters += letters
+        val (own, merged) = outcome.getOrThrow()
+        report.own += own
         report.merged += merged
-        report.worst += query.text to full.kspc
+        report.worst += query.text to own.kspc
     }
 
     println()
     println("queries ${queries.size}, untypable $untypable, corpus ${queryFile.path}")
     println()
-    println("%-10s %8s %8s %8s %8s".format("set", "chars", "full", "letters", "merged"))
-    var full = TrialResult.EMPTY
-    var letters = TrialResult.EMPTY
+    println("%-10s %8s %10s %10s".format("set", "chars", "own tree", "merged"))
+    var own = TrialResult.EMPTY
     var merged = TrialResult.EMPTY
     for (report in reports.values) {
-        if (report.full.characters == 0) {
+        if (report.own.characters == 0) {
             continue
         }
-        full += report.full
-        letters += report.letters
+        own += report.own
         merged += report.merged
-        line(report.label, report.full, report.letters, report.merged)
+        line(report.label, report.own, report.merged)
     }
-    if (full.characters > 0) {
-        line("all", full, letters, merged)
+    if (own.characters > 0) {
+        line("all", own, merged)
     }
 
     println()
     println("the tree, per language")
     for ((language, table) in tables) {
         val tree = trees.getValue(language)
-        val weights = Weights.text(table, CharacterSet.FULL)
+        val weights = Weights.text(table)
         println(
             "  %-4s %.3f presses per character, deepest %d, %d characters within two presses"
                 .format(
@@ -131,8 +125,8 @@ fun main(arguments: Array<String>) {
     // What the pinned assignment buys. It cannot change a code length, so it never appears in
     // the KSPC table above.
     val pinned = trees.getValue("pl").agreementWith(trees.getValue("en"))
-    val loose = textTree(tables.getValue("pl"), CharacterSet.FULL, Ordering.FREQUENCY)
-        .agreementWith(textTree(tables.getValue("en"), CharacterSet.FULL, Ordering.FREQUENCY))
+    val loose = textTree(tables.getValue("pl"), Ordering.FREQUENCY)
+        .agreementWith(textTree(tables.getValue("en"), Ordering.FREQUENCY))
     println()
     println("shared codes identical between the Polish and English trees")
     println("  pinned by rank    %.0f%%".format(pinned * 100))
@@ -147,16 +141,8 @@ fun main(arguments: Array<String>) {
     println()
 }
 
-private fun line(label: String, full: TrialResult, letters: TrialResult, merged: TrialResult) {
-    println(
-        "%-10s %8d %8.3f %8.3f %8.3f".format(
-            label,
-            full.characters,
-            full.kspc,
-            letters.kspc,
-            merged.kspc,
-        )
-    )
+private fun line(label: String, own: TrialResult, merged: TrialResult) {
+    println("%-10s %8d %10.3f %10.3f".format(label, own.characters, own.kspc, merged.kspc))
 }
 
 private fun load(path: String?): FrequencyTable? {

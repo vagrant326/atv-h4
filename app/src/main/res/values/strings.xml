@@ -12,10 +12,13 @@
     <string name="language_en" translatable="false">English</string>
     <string name="capture_no_key" translatable="false">—</string>
     <string name="strip_dead_branch" translatable="false">—</string>
+    <!-- Functions are bracketed and drawn in their own colour so they cannot be mistaken for
+         characters you would type. Without the brackets "DEL" sits in a branch preview looking
+         exactly like the letters d, e and l. -->
     <string name="symbol_space" translatable="false">_</string>
-    <string name="symbol_backspace" translatable="false">DEL</string>
-    <string name="symbol_layer" translatable="false">123</string>
-    <string name="symbol_edit" translatable="false">EDIT</string>
+    <string name="symbol_backspace" translatable="false">[del]</string>
+    <string name="symbol_layer" translatable="false">[123]</string>
+    <string name="symbol_edit" translatable="false">[edit]</string>
     <string name="update_working" translatable="false">…</string>
     <string name="update_percent" translatable="false">%1$d%%</string>
     <string name="update_installing_headline" translatable="false">%1$d kB</string>
@@ -30,12 +33,7 @@
     <string name="hint_off">Off</string>
     <string name="hint_off_description">Nothing. Turn this off once your thumb knows the codes — until then there is no other reminder, because nothing is printed on the remote.</string>
 
-    <string name="settings_character_set">Characters</string>
-    <string name="settings_character_set_warning">Changing this rebuilds every code. Harmless while you are reading the guide — it only costs you something once you have stopped.</string>
-    <string name="set_full">Everything</string>
-    <string name="set_full_description">Letters, space, punctuation and digits in one tree. Nothing needs a mode switch.</string>
-    <string name="set_letters">Letters only</string>
-    <string name="set_letters_description">Letters and space. Shorter codes for the letters; punctuation and digits move to the digit layer.</string>
+    <string name="settings_codes_change_warning">Changing this rebuilds every code. Harmless while you are reading the guide — it only costs you something once you have stopped.</string>
 
     <string name="settings_tree_scope">Code table</string>
     <string name="scope_per_language">One per language</string>

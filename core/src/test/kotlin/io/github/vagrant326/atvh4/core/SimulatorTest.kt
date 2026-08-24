@@ -12,14 +12,14 @@ class SimulatorTest {
         Weights.DIGIT_CONTROL_BRANCH,
     )
 
-    private fun text(set: CharacterSet) = CodeTree.withControlBranch(
-        Weights.text(table, set),
+    private fun text() = CodeTree.withControlBranch(
+        Weights.text(table),
         Weights.CONTROL_BRANCH,
     )
 
     @Test
     fun `the cost of a string is the sum of its code lengths`() {
-        val tree = text(CharacterSet.FULL)
+        val tree = text()
         val target = "the fox"
         val expected = target.sumOf { requireNotNull(tree.codeOf(Symbol.Character(it))).size }
 
@@ -32,7 +32,7 @@ class SimulatorTest {
 
     @Test
     fun `a run of digits pays for one switch, not one per digit`() {
-        val tree = text(CharacterSet.FULL)
+        val tree = text()
         val entry = requireNotNull(tree.codeOf(Symbol.Function.LAYER)).size
 
         val one = Simulator(tree, digits).run("a7")
@@ -48,7 +48,7 @@ class SimulatorTest {
      */
     @Test
     fun `a space leaves the digit layer without costing a switch`() {
-        val tree = text(CharacterSet.FULL)
+        val tree = text()
         val entry = requireNotNull(tree.codeOf(Symbol.Function.LAYER)).size
 
         val result = Simulator(tree, digits).run("blade runner 2049 remastered")
@@ -59,7 +59,7 @@ class SimulatorTest {
     /** Anything other than a space leaves through BACK, which is one real press. */
     @Test
     fun `leaving the layer for a letter costs one press`() {
-        val tree = text(CharacterSet.FULL)
+        val tree = text()
         val entry = requireNotNull(tree.codeOf(Symbol.Function.LAYER)).size
 
         val result = Simulator(tree, digits).run("a7a")
@@ -68,21 +68,33 @@ class SimulatorTest {
     }
 
     /**
-     * Charging the round trip is what keeps the two character sets comparable. Without it the
-     * smaller alphabet would win every comparison by being unable to type an apostrophe.
+     * Punctuation lives in the text tree, not with the digits — an apostrophe in the middle of a
+     * title is not worth a layer switch, and the setting that used to move it there measured as
+     * a dead heat.
      */
     @Test
-    fun `punctuation costs a layer trip when the tree has no room for it`() {
-        val letters = text(CharacterSet.LETTERS)
-        val full = text(CharacterSet.FULL)
+    fun `punctuation never needs the digit layer`() {
+        val result = Simulator(text(), digits).run("bohren & der club of gore, don't")
 
-        assertTrue(Simulator(letters, digits).run("don't").layerPresses > 0)
-        assertEquals(0, Simulator(full, digits).run("don't").layerPresses)
+        assertEquals(0, result.layerPresses)
+        assertTrue(result.codePresses > 0)
+    }
+
+    /** Ten digits over three carrying branches fit twelve slots, so none of them costs more. */
+    @Test
+    fun `every digit is two presses`() {
+        for (digit in Symbol.DIGITS) {
+            assertEquals(
+                2,
+                requireNotNull(digits.codeOf(Symbol.Character(digit))).size,
+                "'$digit'",
+            )
+        }
     }
 
     @Test
     fun `space is two presses in both trees`() {
-        val tree = text(CharacterSet.FULL)
+        val tree = text()
 
         assertEquals(2, requireNotNull(tree.codeOf(Symbol.Character(' '))).size)
         assertEquals(2, requireNotNull(digits.codeOf(Symbol.Character(' '))).size)

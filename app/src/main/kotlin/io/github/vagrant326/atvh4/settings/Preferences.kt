@@ -3,7 +3,6 @@ package io.github.vagrant326.atvh4.settings
 import android.content.Context
 import androidx.annotation.StringRes
 import io.github.vagrant326.atvh4.R
-import io.github.vagrant326.atvh4.core.CharacterSet
 import io.github.vagrant326.atvh4.ime.CustomKeys
 import io.github.vagrant326.atvh4.ime.KeyBindings
 import io.github.vagrant326.atvh4.model.Language
@@ -76,19 +75,6 @@ class Preferences(context: Context) {
             ?.let { stored -> HintMode.entries.firstOrNull { it.name == stored } }
             ?: HintMode.BRANCHES
         set(value) = store.edit().putString(KEY_HINT_MODE, value.name).apply()
-
-    /**
-     * Defaults to the full set. It is what a keyboard actually needs, and it is the
-     * configuration whose published figure — 2.321 rather than 2.074 — is the honest one.
-     */
-    var characterSet: CharacterSet
-        get() = store.getString(KEY_CHARACTER_SET, null)
-            ?.let { stored -> CharacterSet.entries.firstOrNull { it.name == stored } }
-            ?: CharacterSet.FULL
-        set(value) = store.edit().putString(KEY_CHARACTER_SET, value.name).apply()
-
-    fun nextCharacterSet(): CharacterSet =
-        CharacterSet.entries[(characterSet.ordinal + 1) % CharacterSet.entries.size]
 
     /** Defaults to a tree per language, which costs about 1% fewer presses. See [TreeScope]. */
     var treeScope: TreeScope
@@ -197,7 +183,6 @@ class Preferences(context: Context) {
     private companion object {
         const val NAME = "h4"
         const val KEY_HINT_MODE = "hint_mode"
-        const val KEY_CHARACTER_SET = "character_set"
         const val KEY_TREE_SCOPE = "tree_scope"
         const val KEY_ENABLED_LANGUAGES = "enabled_languages"
         const val KEY_ACTIVE_LANGUAGE = "active_language"

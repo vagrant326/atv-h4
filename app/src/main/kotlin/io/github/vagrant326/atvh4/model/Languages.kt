@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import androidx.annotation.StringRes
 import io.github.vagrant326.atvh4.R
-import io.github.vagrant326.atvh4.core.CharacterSet
 import io.github.vagrant326.atvh4.core.CodeTree
 import io.github.vagrant326.atvh4.core.FrequencyTable
 import io.github.vagrant326.atvh4.core.Symbol
@@ -81,7 +80,10 @@ enum class TreeScope {
 class TreeRepository(private val context: Context) {
 
     private val tables = HashMap<Language, FrequencyTable>()
-    private val trees = HashMap<Key, CodeTree>()
+
+    // Keyed by the language list, so one enabled language and the shared tree over that same
+    // language are correctly the same tree.
+    private val trees = HashMap<List<Language>, CodeTree>()
 
     /**
      * The digit layer, one tree whatever the language: ten digits look the same everywhere. Its
@@ -92,10 +94,10 @@ class TreeRepository(private val context: Context) {
         CodeTree.withControlBranch(Weights.digitLayer(), Weights.DIGIT_CONTROL_BRANCH)
     }
 
-    fun textTree(language: Language, set: CharacterSet): CodeTree =
-        trees.getOrPut(Key(listOf(language), set)) {
+    fun textTree(language: Language): CodeTree =
+        trees.getOrPut(listOf(language)) {
             CodeTree.withControlBranch(
-                Weights.text(tableFor(language), set),
+                Weights.text(tableFor(language)),
                 Weights.CONTROL_BRANCH,
             )
         }
@@ -104,10 +106,10 @@ class TreeRepository(private val context: Context) {
      * One tree over every enabled language's counts summed. Adding a language therefore changes
      * the codes, which is the honest consequence of one table covering them all.
      */
-    fun sharedTree(languages: List<Language>, set: CharacterSet): CodeTree =
-        trees.getOrPut(Key(languages, set)) {
+    fun sharedTree(languages: List<Language>): CodeTree =
+        trees.getOrPut(languages) {
             CodeTree.withControlBranch(
-                Weights.text(FrequencyTable.merge(languages.map { tableFor(it) }), set),
+                Weights.text(FrequencyTable.merge(languages.map { tableFor(it) })),
                 Weights.CONTROL_BRANCH,
             )
         }
@@ -123,10 +125,6 @@ class TreeRepository(private val context: Context) {
             FALLBACK
         }
     }
-
-    // The language list is the key, so one enabled language and the shared tree over that same
-    // language are the same tree — which they now are, since nothing is dropped from either.
-    private data class Key(val languages: List<Language>, val set: CharacterSet)
 
     private companion object {
         const val TAG = "H4"

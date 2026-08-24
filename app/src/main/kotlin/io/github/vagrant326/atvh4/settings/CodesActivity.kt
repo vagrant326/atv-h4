@@ -125,14 +125,13 @@ class CodesActivity : Activity() {
     }
 
     private fun show() {
-        val set = preferences.characterSet
         val shared = preferences.treeScope == TreeScope.SHARED
         val languages = preferences.enabledLanguages
-        val tree = if (shared) trees.sharedTree(languages, set) else trees.textTree(language, set)
+        val tree = if (shared) trees.sharedTree(languages) else trees.textTree(language)
         val weights = if (shared) {
-            Weights.text(FrequencyTable.merge(languages.map { trees.tableFor(it) }), set)
+            Weights.text(FrequencyTable.merge(languages.map { trees.tableFor(it) }))
         } else {
-            Weights.text(trees.tableFor(language), set)
+            Weights.text(trees.tableFor(language))
         }
 
         // Under a shared tree there is only one table, so the switch has nothing to switch.
@@ -171,7 +170,13 @@ class CodesActivity : Activity() {
                 }
                 for (symbol in chunk) {
                     val code = requireNotNull(tree.codeOf(symbol))
-                    row.addView(cell(display(symbol), code.joinToString("") { it.arrow }))
+                    row.addView(
+                        cell(
+                            display(symbol),
+                            code.joinToString("") { it.arrow },
+                            symbol is Symbol.Function,
+                        )
+                    )
                 }
                 // A short last row would otherwise stretch its cells across the width and stop
                 // the columns lining up with the rows above it.
@@ -193,23 +198,30 @@ class CodesActivity : Activity() {
         is Node.Branch -> node.preview.joinToString(" ") { display(it) } + " …"
     }
 
+    /**
+     * Functions are bracketed, and drawn in their own colour by [cell]. Beside a column of
+     * single letters, an unbracketed "delete" reads as a word you could type — which on a
+     * reference table is precisely the wrong thing to say.
+     */
     private fun display(symbol: Symbol): String = when (symbol) {
         is Symbol.Character ->
             if (symbol.value == ' ') getString(R.string.codes_space) else symbol.value.toString()
 
-        Symbol.Function.BACKSPACE -> getString(R.string.codes_backspace)
-        Symbol.Function.LAYER -> getString(R.string.codes_layer)
-        Symbol.Function.EDIT -> getString(R.string.codes_edit)
+        Symbol.Function.BACKSPACE -> bracketed(R.string.codes_backspace)
+        Symbol.Function.LAYER -> bracketed(R.string.codes_layer)
+        Symbol.Function.EDIT -> bracketed(R.string.codes_edit)
     }
 
+    private fun bracketed(resource: Int) = "[${getString(resource)}]"
+
     /** One row of the four-column grid: the symbol, then the presses that produce it. */
-    private fun cell(name: String, code: String) = LinearLayout(this).apply {
+    private fun cell(name: String, code: String, function: Boolean) = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         setPadding(0, dp(4), dp(12), dp(4))
         layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         addView(
-            label(name, Color.WHITE, 15f).apply {
-                layoutParams = LinearLayout.LayoutParams(dp(58), ViewGroup.LayoutParams.WRAP_CONTENT)
+            label(name, if (function) FUNCTION else Color.WHITE, 15f).apply {
+                layoutParams = LinearLayout.LayoutParams(dp(88), ViewGroup.LayoutParams.WRAP_CONTENT)
             }
         )
         addView(
@@ -259,5 +271,8 @@ class CodesActivity : Activity() {
         const val SECONDARY = 0xFFB0B0BC.toInt()
         const val MUTED = 0xFF6B6B78.toInt()
         const val ACCENT = 0xFF7FD1FF.toInt()
+
+        /** Functions, so a reference table never presents one as a character. */
+        const val FUNCTION = 0xFFB6A0FF.toInt()
     }
 }

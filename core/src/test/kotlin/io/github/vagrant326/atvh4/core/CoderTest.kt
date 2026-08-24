@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 class CoderTest {
 
     private val tree = CodeTree.of(
-        Weights.text(FrequencyTable.of(SAMPLE), CharacterSet.FULL)
+        Weights.text(FrequencyTable.of(SAMPLE))
     )
 
     @Test

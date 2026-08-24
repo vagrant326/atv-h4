@@ -9,12 +9,7 @@
     <string name="hint_off">Wyłączona</string>
     <string name="hint_off_description">Nic. Wyłącz, kiedy kciuk zna już kody — do tego czasu nie ma innej podpowiedzi, bo na pilocie nic nie jest nadrukowane.</string>
 
-    <string name="settings_character_set">Znaki</string>
-    <string name="settings_character_set_warning">Zmiana przebudowuje wszystkie kody. Dopóki czytasz podpowiedź, nic to nie kosztuje — zacznie, kiedy przestaniesz.</string>
-    <string name="set_full">Wszystko</string>
-    <string name="set_full_description">Litery, spacja, interpunkcja i cyfry w jednym drzewie. Nic nie wymaga przełączania trybu.</string>
-    <string name="set_letters">Tylko litery</string>
-    <string name="set_letters_description">Litery i spacja. Krótsze kody dla liter; interpunkcja i cyfry przenoszą się do warstwy cyfr.</string>
+    <string name="settings_codes_change_warning">Zmiana przebudowuje wszystkie kody. Dopóki czytasz podpowiedź, nic to nie kosztuje — zacznie, kiedy przestaniesz.</string>
 
     <string name="settings_tree_scope">Tabela kodów</string>
     <string name="scope_per_language">Osobna na język</string>
