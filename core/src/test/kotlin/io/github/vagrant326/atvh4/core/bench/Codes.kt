@@ -36,7 +36,7 @@ fun main(arguments: Array<String>) {
     }
     val table = file.inputStream().use { FrequencyTable.read(it) }
     val weights = Weights.text(table, set)
-    val tree = CodeTree.of(weights)
+    val tree = CodeTree.withControlBranch(weights, Weights.CONTROL_BRANCH)
 
     println()
     println("$path, ${set.name.lowercase()}: ${tree.symbols.size} symbols, deepest ${tree.depth}")

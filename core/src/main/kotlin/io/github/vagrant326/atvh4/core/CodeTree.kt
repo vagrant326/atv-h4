@@ -137,31 +137,107 @@ class CodeTree private constructor(
         }
 
         /**
+         * One direction reserved for a fixed set of functions, the other three carrying the
+         * characters.
+         *
+         * The reason this exists is not comfort, it is honesty. Delete, the digit layer and the
+         * language switch **have no frequency in any corpus** — no text records how often
+         * somebody corrects a typo or enters a PIN — so letting Huffman place them means letting
+         * it place them from numbers that were invented. Reserving a branch replaces three
+         * fabricated weights with one structural decision, and gives all of them the same
+         * two-press cost, in the same place, permanently.
+         *
+         * The bill is paid by the letters: three root branches instead of four is a quarter less
+         * room at every depth. [Benchmark] prices it.
+         *
+         * @param characters everything that is not a function, with its measured frequency.
+         * @param control what each direction under [reserved] does. Fewer than [ARITY] entries
+         *   is allowed; the unused directions simply lead nowhere.
+         */
+        fun withControlBranch(
+            characters: Map<Symbol, Long>,
+            control: Map<Direction, Symbol>,
+            reserved: Direction = Direction.UP,
+            ordering: Ordering = Ordering.PINNED,
+        ): CodeTree {
+            require(characters.size >= 2) { "a code tree needs at least two characters" }
+            require(control.isNotEmpty()) { "a reserved branch with nothing in it wastes a press" }
+
+            val codes = LinkedHashMap<Symbol, List<Direction>>()
+            for ((direction, symbol) in control) {
+                codes[symbol] = listOf(reserved, direction)
+            }
+
+            val arrange = arrangement(ordering)
+            val forest = forest(characters, roots = ARITY - 1).sortedWith(arrange)
+            val carriers = Direction.entries.filter { it != reserved }
+            for ((at, tree) in forest.withIndex()) {
+                collect(tree, listOf(carriers[at]), codes, arrange)
+            }
+
+            val weights = characters + control.values.associateWith { CONTROL_PREVIEW_WEIGHT }
+            return CodeTree(build(codes, weights), codes)
+        }
+
+        /**
+         * How a node's children are laid across the four directions. Never changes a code
+         * *length*, so it cannot change KSPC — see [Ordering].
+         *
+         * Padding sorts last under both, which is what keeps a dead slot at the end of a branch
+         * rather than punching a hole in the middle of one.
+         */
+        private fun arrangement(ordering: Ordering): Comparator<Merge> = when (ordering) {
+            Ordering.PINNED -> compareBy { lightestRank(it) }
+            Ordering.FREQUENCY -> compareByDescending<Merge> { it.weight }
+                .thenBy { lightestRank(it) }
+        }
+
+        /**
+         * Nominal, and only ever used to order the preview on the strip. A function's real
+         * weight is the whole point of [withControlBranch]: it does not have one.
+         */
+        private const val CONTROL_PREVIEW_WEIGHT = 1L
+
+        /**
          * Huffman at arity four. The queue is ordered by weight and then by a tie-breaking
          * sequence number, because the two languages must produce the same tree from the same
          * table on every machine — a hash iteration order leaking into the code assignment
          * would be invisible in tests and wrong on the device.
          */
-        private fun codeLengths(weights: Map<Symbol, Long>): Map<Symbol, Int> {
+        /**
+         * Huffman, stopped at [roots] trees rather than at one.
+         *
+         * Stopping early is what lets a direction be reserved: three trees become the three
+         * carrying branches, and the fourth root slot is spoken for elsewhere. The queue is
+         * ordered by weight and then by a tie-breaking sequence number, because the same table
+         * must produce the same tree on every machine — a hash iteration order leaking into the
+         * assignment would be invisible in tests and wrong on the device.
+         */
+        private fun forest(weights: Map<Symbol, Long>, roots: Int): List<Merge> {
+            require(weights.size >= roots) { "${weights.size} symbols cannot fill $roots roots" }
             var sequence = 0
             val queue = PriorityQueue<Merge>(compareBy({ it.weight }, { it.sequence }))
 
-            // Each merge consumes exactly ARITY nodes, so the leaf count has to leave no
-            // remainder. Without the padding the shortfall lands on the *first* merge, which
-            // is the one holding the rarest symbols - and one of them silently gets promoted
-            // to a shorter code than the distribution earns.
-            val padding = (ARITY - 1 - (weights.size - 1) % (ARITY - 1)) % (ARITY - 1)
+            // Each merge consumes exactly ARITY nodes and yields one, so the leaf count has to
+            // reach `roots` with no remainder. Without the padding the shortfall lands on the
+            // *first* merge, which is the one holding the rarest symbols - and one of them
+            // silently gets promoted to a shorter code than the distribution earns.
+            val step = ARITY - 1
+            val padding = ((roots - weights.size) % step + step) % step
             repeat(padding) { queue += Merge(0L, sequence++, null, emptyList()) }
 
             for (symbol in weights.keys.sortedBy { Symbol.rank(it) }) {
                 queue += Merge(weights.getValue(symbol), sequence++, symbol, emptyList())
             }
 
-            while (queue.size > 1) {
+            while (queue.size > roots) {
                 val group = List(ARITY) { queue.poll() }
                 queue += Merge(group.sumOf { it.weight }, sequence++, null, group)
             }
+            return List(queue.size) { queue.poll() }
+        }
 
+        private fun codeLengths(weights: Map<Symbol, Long>): Map<Symbol, Int> {
             val lengths = HashMap<Symbol, Int>(weights.size)
             fun walk(node: Merge, depth: Int) {
                 val symbol = node.leaf
@@ -173,8 +249,37 @@ class CodeTree private constructor(
                     walk(child, depth + 1)
                 }
             }
-            walk(queue.poll(), 0)
+            walk(forest(weights, roots = 1).single(), 0)
             return lengths
+        }
+
+        /** Reads codes straight off a merge tree, arranging each node's children in place. */
+        private fun collect(
+            node: Merge,
+            prefix: List<Direction>,
+            into: MutableMap<Symbol, List<Direction>>,
+            arrange: Comparator<Merge>,
+        ) {
+            val symbol = node.leaf
+            if (symbol != null) {
+                into[symbol] = prefix
+                return
+            }
+            for ((at, child) in node.children.sortedWith(arrange).withIndex()) {
+                if (child.leaf == null && child.children.isEmpty()) {
+                    continue
+                }
+                collect(child, prefix + Direction.entries[at], into, arrange)
+            }
+        }
+
+        private fun lightestRank(node: Merge): Int {
+            val symbol = node.leaf
+            return when {
+                symbol != null -> Symbol.rank(symbol)
+                node.children.isEmpty() -> Int.MAX_VALUE
+                else -> node.children.minOf { lightestRank(it) }
+            }
         }
 
         /**

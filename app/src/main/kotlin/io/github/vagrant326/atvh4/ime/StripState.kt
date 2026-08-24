@@ -2,7 +2,7 @@ package io.github.vagrant326.atvh4.ime
 
 import io.github.vagrant326.atvh4.core.Coder
 import io.github.vagrant326.atvh4.model.Language
-import io.github.vagrant326.atvh4.model.Layer
+import io.github.vagrant326.atvh4.model.Mode
 import io.github.vagrant326.atvh4.model.TreeScope
 import io.github.vagrant326.atvh4.settings.HintMode
 
@@ -28,7 +28,11 @@ data class StripState(
      * keys arrive but there is no connection to write through.
      */
     val hasEditor: Boolean,
-    val layer: Layer,
+    /**
+     * Which of the three meanings the four directions have. [Mode.EDIT] is the one that is not
+     * a code tree, so the guide draws a fixed legend for it rather than branches.
+     */
+    val mode: Mode,
     /**
      * Whether the last press went into unused code space. Shown rather than swallowed: on a
      * method where a press is normally invisible until the code completes, silence is

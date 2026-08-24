@@ -14,10 +14,8 @@
     <string name="strip_dead_branch" translatable="false">—</string>
     <string name="symbol_space" translatable="false">_</string>
     <string name="symbol_backspace" translatable="false">DEL</string>
-    <string name="symbol_caret_left" translatable="false">◄</string>
-    <string name="symbol_caret_right" translatable="false">►</string>
-    <string name="symbol_language" translatable="false">LANG</string>
     <string name="symbol_layer" translatable="false">123</string>
+    <string name="symbol_edit" translatable="false">EDIT</string>
     <string name="update_working" translatable="false">…</string>
     <string name="update_percent" translatable="false">%1$d%%</string>
     <string name="update_installing_headline" translatable="false">%1$d kB</string>
@@ -77,7 +75,7 @@
     <string name="settings_system_keyboard_note">Leaves this app. Enable or switch the active keyboard there.</string>
     <string name="settings_check_updates">Check for updates</string>
     <string name="settings_updates_note">The only thing here that uses the network. It runs in a separate process, only when you press it, and sends nothing. What you type never leaves the device.</string>
-    <string name="settings_typing_note">Every character is a short run of d-pad presses — one or two for the common ones, four or five for the rare. The guide above the field shows what each direction leads to from where you are, so you never have to know a code in advance.\n\nCentre submits. BACK abandons a half-finished character, and closes the keyboard when there is nothing to abandon.\n\nDelete, the caret, the language switch and the digit layer are characters too: they sit in the same tree and are reached the same way. So the whole keyboard works on a remote with nothing but a d-pad, a centre button and BACK.</string>
+    <string name="settings_typing_note">Left, right and down are the code symbols: every character is a short run of them, two presses for the common ones and up to six for the rare. The guide above the field shows what each direction leads to from where you are, so you never have to know a code in advance.\n\nUp is reserved and never moves: up-up is space, up-down deletes, up-left goes to the digits, up-right opens the edit mode.\n\nThe digits stay until you press BACK or type a space. In the edit mode, left and right move the caret one character at a time, up deletes, down opens the language list, BACK returns to typing.\n\nCentre submits. BACK drops a half-finished character, then leaves a mode, then closes the keyboard. Nothing needs a long press, and nothing needs a button your remote might not have.</string>
     <string name="settings_scratch_hint">Type here</string>
     <string name="settings_scratch_note">Focus this field to bring the keyboard up. Nothing here is saved.</string>
 
@@ -90,10 +88,8 @@
     <string name="codes_back">BACK returns to settings.</string>
     <string name="codes_space">space</string>
     <string name="codes_backspace">delete</string>
-    <string name="codes_caret_left">caret left</string>
-    <string name="codes_caret_right">caret right</string>
-    <string name="codes_language_symbol">language</string>
     <string name="codes_layer">digits</string>
+    <string name="codes_edit">edit mode</string>
     <plurals name="codes_presses">
         <item quantity="one">%1$d PRESS</item>
         <item quantity="other">%1$d PRESSES</item>
@@ -177,6 +173,13 @@
     <string name="strip_nothing_there">nothing that way</string>
     <string name="strip_ready">start</string>
     <string name="strip_digit_layer">digits</string>
+    <string name="strip_edit_mode">edit</string>
+    <string name="strip_edit_exit">back returns to typing</string>
+    <string name="strip_editing">edit</string>
+    <string name="strip_edit_left">caret ◄</string>
+    <string name="strip_edit_right">caret ►</string>
+    <string name="strip_edit_delete">delete</string>
+    <string name="strip_edit_language">language</string>
     <string name="strip_chooser_hint">up / down</string>
     <string name="strip_no_editor">nowhere to type — this app never asked for input</string>
     <string name="strip_hint_submit">submit</string>

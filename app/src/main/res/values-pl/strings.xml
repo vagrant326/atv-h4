@@ -54,7 +54,7 @@
     <string name="settings_system_keyboard_note">Wychodzi z tej aplikacji. Tam włączasz i przełączasz aktywną klawiaturę.</string>
     <string name="settings_check_updates">Sprawdź aktualizacje</string>
     <string name="settings_updates_note">Jedyna rzecz tutaj, która korzysta z sieci. Działa w osobnym procesie, tylko po naciśnięciu, i nic nie wysyła. To, co piszesz, nigdy nie opuszcza urządzenia.</string>
-    <string name="settings_typing_note">Każdy znak to krótka seria naciśnięć d-pada — jedno albo dwa na częste, cztery albo pięć na rzadkie. Podpowiedź nad polem pokazuje, co jest za każdym kierunkiem z miejsca, w którym jesteś, więc nie musisz znać kodu z góry.\n\nCenter zatwierdza. BACK porzuca niedokończony znak, a kiedy nie ma czego porzucać — zamyka klawiaturę.\n\nUsuwanie, karetka, przełącznik języka i warstwa cyfr też są znakami: siedzą w tym samym drzewie i sięga się po nie tak samo. Dzięki temu cała klawiatura działa na pilocie, który ma tylko d-pad, center i BACK.</string>
+    <string name="settings_typing_note">Lewo, prawo i dół to symbole kodu: każdy znak to krótka seria z nich, dwa naciśnięcia na częste i do sześciu na rzadkie. Podpowiedź nad polem pokazuje, co jest za każdym kierunkiem z miejsca, w którym jesteś, więc nie musisz znać kodu z góry.\n\nGóra jest zarezerwowana i nigdy się nie przesuwa: góra-góra to spacja, góra-dół usuwa, góra-lewo wchodzi w cyfry, góra-prawo otwiera tryb edycji.\n\nCyfry zostają, dopóki nie naciśniesz BACK albo nie wpiszesz spacji. W trybie edycji lewo i prawo przesuwają karetkę o jeden znak, góra usuwa, dół otwiera listę języków, BACK wraca do pisania.\n\nCenter zatwierdza. BACK najpierw porzuca niedokończony znak, potem wychodzi z trybu, potem zamyka klawiaturę. Nic nie wymaga przytrzymania ani klawisza, którego twój pilot może nie mieć.</string>
     <string name="settings_scratch_hint">Pisz tutaj</string>
     <string name="settings_scratch_note">Ustaw focus na tym polu, żeby wywołać klawiaturę. Nic tu nie jest zapisywane.</string>
 
@@ -67,10 +67,8 @@
     <string name="codes_back">BACK wraca do ustawień.</string>
     <string name="codes_space">spacja</string>
     <string name="codes_backspace">usuwanie</string>
-    <string name="codes_caret_left">karetka w lewo</string>
-    <string name="codes_caret_right">karetka w prawo</string>
-    <string name="codes_language_symbol">język</string>
     <string name="codes_layer">cyfry</string>
+    <string name="codes_edit">tryb edycji</string>
     <plurals name="codes_presses">
         <item quantity="one">%1$d NACIŚNIĘCIE</item>
         <item quantity="few">%1$d NACIŚNIĘCIA</item>
@@ -155,6 +153,13 @@
     <string name="strip_nothing_there">tam nic nie ma</string>
     <string name="strip_ready">start</string>
     <string name="strip_digit_layer">cyfry</string>
+    <string name="strip_edit_mode">edycja</string>
+    <string name="strip_edit_exit">back wraca do pisania</string>
+    <string name="strip_editing">edycja</string>
+    <string name="strip_edit_left">karetka ◄</string>
+    <string name="strip_edit_right">karetka ►</string>
+    <string name="strip_edit_delete">usuń</string>
+    <string name="strip_edit_language">język</string>
     <string name="strip_chooser_hint">góra / dół</string>
     <string name="strip_no_editor">nie ma gdzie pisać — ta aplikacja nie poprosiła o wejście</string>
     <string name="strip_hint_submit">zatwierdź</string>

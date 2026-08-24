@@ -12,18 +12,25 @@ import io.github.vagrant326.atvh4.core.Direction
 import io.github.vagrant326.atvh4.core.Press
 import io.github.vagrant326.atvh4.core.Symbol
 import io.github.vagrant326.atvh4.model.Language
-import io.github.vagrant326.atvh4.model.Layer
+import io.github.vagrant326.atvh4.model.Mode
 import io.github.vagrant326.atvh4.model.TreeRepository
 import io.github.vagrant326.atvh4.model.TreeScope
 import io.github.vagrant326.atvh4.settings.Preferences
 
 /**
- * Four directions, one code tree, and nothing to disambiguate.
+ * Four directions, and nothing to disambiguate.
  *
  * There is no composing text here and no candidate to accept. A completed code emits exactly
  * one symbol, so the character appears in the field the moment it is decided and never has to
  * be taken back. What the keyboard owns between presses is a position in the tree, and nothing
- * else — the editor owns the text, as it does in every keyboard in this programme.
+ * else — the editor owns the text.
+ *
+ * The first press is reserved. `UP` is not a code symbol: it opens a fixed branch holding
+ * space, delete, the digit layer and the edit mode, all at two presses, in the same place
+ * forever. That costs the letters a quarter of their two-press codes — measured at about 5% of
+ * all presses — and buys three things: no invented frequencies for functions that appear in no
+ * corpus, four positions that can be learnt where fifty cannot, and a tree whose long tail is
+ * spread over three branches instead of piled into one.
  */
 class H4ImeService : InputMethodService() {
 
@@ -32,7 +39,7 @@ class H4ImeService : InputMethodService() {
     private lateinit var coder: Coder
     private var strip: BranchStripView? = null
     private var language = Language.PL
-    private var layer = Layer.TEXT
+    private var mode = Mode.TEXT
     private var showLanguageChooser = false
     private var deadPress = false
 
@@ -54,21 +61,20 @@ class H4ImeService : InputMethodService() {
         if (language !in preferences.enabledLanguages) {
             language = preferences.activeLanguage
         }
-        // Recomputed for every field rather than remembered: a layer switch made in a PIN box
-        // must not follow the user into the next search query.
-        layer = if (wantsDigits(info)) Layer.DIGITS else Layer.TEXT
+        // Recomputed for every field rather than remembered: a mode entered in a PIN box must
+        // not follow the user into the next search query.
+        mode = if (wantsDigits(info)) Mode.DIGITS else Mode.TEXT
         coder.use(currentTree())
         moveCaretToEnd(info)
         render()
     }
 
     /**
-     * A field that declares itself numeric goes straight to the digit layer, where ten digits
-     * and four functions fit in two presses each instead of three or four.
+     * A field that declares itself numeric goes straight to the digit layer, where every digit
+     * is two presses instead of four or more.
      *
      * Plenty of fields that mostly hold digits still declare themselves plain text — a
-     * Downloader code box is one — which is why the layer is also a leaf of the code tree and
-     * can be reached by hand.
+     * Downloader code box is one — which is why the layer is also two presses away by hand.
      */
     private fun wantsDigits(info: EditorInfo?): Boolean {
         val variant = (info?.inputType ?: return false) and InputType.TYPE_MASK_CLASS
@@ -80,9 +86,6 @@ class H4ImeService : InputMethodService() {
     /**
      * A field that opens with the caret at the front is almost never what was wanted: coming
      * back to a search box means adding to the query, not prefixing it.
-     *
-     * Only nudged when the selection is collapsed at zero and there is text after it, so an
-     * editor that placed the caret deliberately, or gave the user a selection, is left alone.
      */
     private fun moveCaretToEnd(info: EditorInfo?) {
         if (info == null || info.initialSelStart != 0 || info.initialSelEnd != 0) {
@@ -100,9 +103,8 @@ class H4ImeService : InputMethodService() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         // An IME receives hardware key events even while its window is hidden. Consuming d-pad
         // events in that state takes over navigation for the whole device - it left a TV
-        // unnavigable, recoverable only via HOME or a USB mouse. This keyboard's four code
-        // symbols *are* the d-pad, so that risk is larger here than anywhere else in the
-        // programme, not smaller.
+        // unnavigable, recoverable only via HOME or a USB mouse. This keyboard's code symbols
+        // *are* the d-pad, so that risk is larger here than anywhere else in the programme.
         //
         // So while hidden exactly one key is honoured: the trigger the user assigned, which is
         // unassigned by default and can never be a reserved key.
@@ -126,31 +128,42 @@ class H4ImeService : InputMethodService() {
             render()
             return true
         }
-        showLanguageChooser = false
 
         when (action) {
-            is Action.Code -> press(action.direction)
+            is Action.Code -> if (mode == Mode.EDIT) edit(action.direction) else press(action.direction)
             Action.Submit -> submit()
             Action.Delete -> backspace()
             Action.NextLanguage -> stepLanguage(1)
-            Action.ShowLanguages ->
-                showLanguageChooser = preferences.treeScope == TreeScope.PER_LANGUAGE
-            Action.ToggleLayer -> toggleLayer()
+            Action.ShowLanguages -> openChooser()
+            Action.ToggleLayer -> enterMode(if (mode == Mode.DIGITS) Mode.TEXT else Mode.DIGITS)
             Action.Ignore -> Unit
-
-            // One press escapes once nothing is in flight. Losing a half-typed code matters far
-            // less than having a reliable way out of the keyboard, and this one owns the d-pad.
-            Action.Back -> {
-                if (!coder.abandon()) {
-                    requestHideSelf(0)
-                    return true
-                }
-                deadPress = false
-            }
+            Action.Back -> if (!goBack()) return true
         }
 
         render()
         return true
+    }
+
+    /**
+     * `BACK`, in order: drop a half-finished code, then leave a mode, then leave the keyboard.
+     *
+     * Abandoning cannot be a code — mid-code every further press descends to some leaf, so
+     * there is no cancel inside the tree — which is why this is the one non-d-pad key the
+     * method genuinely needs.
+     *
+     * @return false when the keyboard has hidden itself and there is nothing left to draw.
+     */
+    private fun goBack(): Boolean {
+        deadPress = false
+        if (coder.abandon()) {
+            return true
+        }
+        if (mode != Mode.TEXT) {
+            enterMode(Mode.TEXT)
+            return true
+        }
+        requestHideSelf(0)
+        return false
     }
 
     private fun press(direction: Direction) {
@@ -170,17 +183,41 @@ class H4ImeService : InputMethodService() {
 
     private fun emit(symbol: Symbol) {
         when (symbol) {
-            is Symbol.Character -> currentInputConnection?.commitText(symbol.value.toString(), 1)
-            Symbol.Function.BACKSPACE -> backspace()
+            is Symbol.Character -> {
+                currentInputConnection?.commitText(symbol.value.toString(), 1)
+                // A space is the digit layer's own way out. It was going to be typed anyway, so
+                // leaving costs nothing — which is most of why the layer is sticky at all.
+                if (symbol.value == ' ' && mode == Mode.DIGITS) {
+                    enterMode(Mode.TEXT)
+                }
+            }
 
-            // Forwarded to the editor rather than computed here: the editor owns the text and
-            // the selection, and asking it to move is the only version that stays correct in a
-            // field this keyboard did not fill.
-            Symbol.Function.CARET_LEFT -> sendDownUpKeyEvents(KeyEvent.KEYCODE_DPAD_LEFT)
-            Symbol.Function.CARET_RIGHT -> sendDownUpKeyEvents(KeyEvent.KEYCODE_DPAD_RIGHT)
-            Symbol.Function.LANGUAGE -> stepLanguage(1)
-            Symbol.Function.LAYER -> toggleLayer()
+            Symbol.Function.BACKSPACE -> backspace()
+            Symbol.Function.LAYER -> enterMode(Mode.DIGITS)
+            Symbol.Function.EDIT -> enterMode(Mode.EDIT)
         }
+    }
+
+    /**
+     * The edit mode: one press, one action, no code to complete.
+     *
+     * Caret movement is forwarded to the editor rather than computed here. The editor owns the
+     * text and the selection, and asking it to move is the only version that stays correct in a
+     * field this keyboard did not fill.
+     */
+    private fun edit(direction: Direction) {
+        deadPress = false
+        when (direction) {
+            Direction.LEFT -> sendDownUpKeyEvents(KeyEvent.KEYCODE_DPAD_LEFT)
+            Direction.RIGHT -> sendDownUpKeyEvents(KeyEvent.KEYCODE_DPAD_RIGHT)
+            Direction.UP -> backspace()
+            Direction.DOWN -> openChooser()
+        }
+    }
+
+    private fun enterMode(next: Mode) {
+        mode = next
+        coder.use(currentTree())
     }
 
     private fun backspace() {
@@ -202,10 +239,18 @@ class H4ImeService : InputMethodService() {
         }
     }
 
+    /** A list rather than blind cycling: with more than two languages, cycling is unusable. */
+    private fun openChooser() {
+        if (preferences.treeScope == TreeScope.SHARED) {
+            return
+        }
+        showLanguageChooser = preferences.enabledLanguages.size > 1
+    }
+
     /**
      * While the list is open the language changes live, so up and down are the whole
-     * interaction and there is nothing to confirm. Returns false for keys that should close
-     * the list and then be handled normally.
+     * interaction and there is nothing to confirm. Returns false for keys that should close the
+     * list and then be handled normally.
      */
     private fun handleChooser(action: Action): Boolean = when (action) {
         is Action.Code -> when (action.direction) {
@@ -215,7 +260,8 @@ class H4ImeService : InputMethodService() {
         }
 
         Action.NextLanguage, Action.ShowLanguages -> { stepLanguage(1); true }
-        Action.Submit, Action.Back -> { showLanguageChooser = false; true }
+        Action.Submit -> { showLanguageChooser = false; true }
+        Action.Back -> { showLanguageChooser = false; true }
         else -> false
     }
 
@@ -224,9 +270,8 @@ class H4ImeService : InputMethodService() {
      *
      * The switch is a mode, and here a mode error is expensive in a way it is not for a
      * predictive keyboard: the same presses in the other tree produce a valid but different
-     * character, so the mistake arrives looking like a typo. That is why the tag on the strip
-     * is permanent, and why the two trees are built to agree on as many codes as Huffman
-     * allows.
+     * character, so the mistake arrives looking like a typo. That is why the tag on the strip is
+     * permanent, and why the two trees are built to agree on as many codes as Huffman allows.
      */
     private fun stepLanguage(delta: Int) {
         val enabled = preferences.enabledLanguages
@@ -241,13 +286,9 @@ class H4ImeService : InputMethodService() {
         coder.use(currentTree())
     }
 
-    private fun toggleLayer() {
-        layer = if (layer == Layer.TEXT) Layer.DIGITS else Layer.TEXT
-        coder.use(currentTree())
-    }
-
+    /** The edit mode has no tree; the text tree stays loaded underneath it. */
     private fun currentTree(): CodeTree =
-        if (layer == Layer.DIGITS) trees.digitTree else textTree()
+        if (mode == Mode.DIGITS) trees.digitTree else textTree()
 
     private fun textTree(): CodeTree {
         val set = preferences.characterSet
@@ -264,13 +305,13 @@ class H4ImeService : InputMethodService() {
                 coder = coder,
                 language = language,
                 enabledLanguages = preferences.enabledLanguages,
-                trained = preferences.enabledLanguages.all { trees.isTrained(it) },
                 scope = preferences.treeScope,
+                trained = preferences.enabledLanguages.all { trees.isTrained(it) },
                 hintMode = preferences.hintMode,
                 showLanguageChooser = showLanguageChooser,
                 customKeys = preferences.customKeys,
                 hasEditor = currentInputConnection != null,
-                layer = layer,
+                mode = mode,
                 deadPress = deadPress,
             )
         )

@@ -2,6 +2,7 @@ package io.github.vagrant326.atvh4.core
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -43,10 +44,10 @@ class CodeTreeTest {
     @Test
     fun `frequent symbols get shorter codes than rare ones`() {
         val tree = CodeTree.of(weights(SAMPLE))
-        val space = requireNotNull(tree.codeOf(Symbol.Character(' '))).size
+        val common = requireNotNull(tree.codeOf(Symbol.Character('e'))).size
         val rare = requireNotNull(tree.codeOf(Symbol.Character('q'))).size
 
-        assertTrue(space < rare, "space cost $space presses and 'q' cost $rare")
+        assertTrue(common < rare, "'e' cost $common presses and 'q' cost $rare")
     }
 
     /** A hash iteration order leaking into the assignment would be invisible on one machine. */
@@ -60,17 +61,6 @@ class CodeTreeTest {
         }
     }
 
-    /**
-     * The exact property [Ordering.PINNED] buys, and the reason [Symbol.rank] ignores
-     * frequency: two distributions that give a symbol the same code length give it the same
-     * code. Swapping the weights of two symbols that already cost the same leaves every code
-     * length untouched, so pinning has to reproduce the whole table — where ordering by weight
-     * moves both of them for no gain at all.
-     *
-     * How far two *real* languages agree is a measurement, not a guarantee: Polish and English
-     * do not produce the same length distribution, and where the lengths differ the codes
-     * after them shift. `:core:bench` reports the figure.
-     */
     @Test
     fun `pinning keeps the codes still when only the frequencies move`() {
         // Seven symbols, three of them tied far above the rest: three one-press codes and four
@@ -99,29 +89,89 @@ class CodeTreeTest {
         assertEquals(pinned.codeOf(Symbol.Character('a')), byWeight.codeOf(Symbol.Character('b')))
     }
 
+    /**
+     * The reserved branch's whole purpose: every function costs exactly two presses, in a place
+     * that does not move when the corpus does. Nothing here was placed from a frequency,
+     * because none of these has one.
+     */
     @Test
-    fun `functions are reachable and backspace is cheap`() {
-        // Enough text that the function shares round to something. They are fractions of the
-        // character total, so on a sentence-sized corpus they all floor to one and the test
-        // would be measuring the coercion rather than the weighting.
-        val table = FrequencyTable.of(SAMPLE.repeat(200))
-        val tree = CodeTree.of(Weights.text(table, CharacterSet.FULL))
+    fun `the reserved branch puts every function two presses away`() {
+        val tree = controlTree(SAMPLE)
 
-        for (function in Symbol.Function.entries) {
-            assertNotNull(tree.codeOf(function), "${function.label} has no code")
+        for ((direction, symbol) in Weights.CONTROL_BRANCH) {
+            assertEquals(
+                listOf(Direction.UP, direction),
+                tree.codeOf(symbol),
+                symbol.label,
+            )
         }
-        val backspace = requireNotNull(tree.codeOf(Symbol.Function.BACKSPACE)).size
-        val language = requireNotNull(tree.codeOf(Symbol.Function.LANGUAGE)).size
-        assertTrue(backspace < language, "backspace cost $backspace, language switch $language")
     }
 
     @Test
-    fun `a zero count symbol is still typable`() {
-        val tree = CodeTree.of(Weights.text(FrequencyTable.of("abc abc"), CharacterSet.FULL))
+    fun `the reserved direction never begins a character code`() {
+        val tree = controlTree(SAMPLE)
+        val reserved = Weights.CONTROL_BRANCH.values.toSet()
 
-        assertNotNull(tree.codeOf(Symbol.Character('7')), "an unseen digit lost its code")
+        for (symbol in tree.symbols) {
+            if (symbol !in reserved) {
+                assertTrue(
+                    requireNotNull(tree.codeOf(symbol)).first() != Direction.UP,
+                    "${symbol.label} took a code out of the reserved branch",
+                )
+            }
+        }
+    }
+
+    /**
+     * What reserving a branch costs, as an invariant rather than as a figure: three carrying
+     * branches leave twelve two-press codes instead of sixteen, and the characters cannot have
+     * more than that however the frequencies fall.
+     *
+     * How much of it is actually spent is a measurement, and belongs to `:core:bench` — on a
+     * sample this size the distribution is flat enough that Huffman does not want the room
+     * anyway, so asserting a cost here would be asserting noise.
+     */
+    @Test
+    fun `reserving a branch caps the characters at twelve two-press codes`() {
+        val tree = controlTree(SAMPLE)
+        val reserved = Weights.CONTROL_BRANCH.values.toSet()
+
+        val cheap = tree.symbols
+            .filter { it !in reserved }
+            .count { requireNotNull(tree.codeOf(it)).size <= 2 }
+
+        assertTrue(cheap <= (ARITY - 1) * ARITY, "$cheap characters within two presses")
+    }
+
+    @Test
+    fun `digits are not in the text tree and punctuation is`() {
+        val tree = controlTree(SAMPLE)
+
+        assertNull(tree.codeOf(Symbol.Character('7')), "a digit reached the text tree")
         assertNotNull(tree.codeOf(Symbol.Character('&')), "an unseen mark lost its code")
     }
+
+    @Test
+    fun `the digit layer carries every digit and every mark`() {
+        val layer = CodeTree.withControlBranch(
+            Weights.digitLayer(),
+            Weights.DIGIT_CONTROL_BRANCH,
+        )
+
+        for (character in Symbol.DIGITS + Symbol.PUNCTUATION) {
+            assertNotNull(layer.codeOf(Symbol.Character(character)), "'$character' has no code")
+        }
+        assertEquals(
+            2,
+            requireNotNull(layer.codeOf(Symbol.Character('7'))).size,
+            "a run of digits is the reason this layer exists",
+        )
+    }
+
+    private fun controlTree(text: String) = CodeTree.withControlBranch(
+        Weights.text(FrequencyTable.of(text), CharacterSet.FULL),
+        Weights.CONTROL_BRANCH,
+    )
 
     private fun weights(text: String): Map<Symbol, Long> =
         FrequencyTable.of(text).counts.mapKeys { Symbol.Character(it.key) }

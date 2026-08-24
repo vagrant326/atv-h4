@@ -29,10 +29,21 @@ enum class Language(
     EN("en", "EN", R.string.language_en),
 }
 
-/** Which tree the keyboard is currently walking. */
-enum class Layer {
+/**
+ * What the four directions currently mean.
+ *
+ * [TEXT] and [DIGITS] are code trees: a direction is a code symbol and a completed code emits a
+ * character. [EDIT] is not a tree at all — each direction does one thing, once, for one press.
+ * That asymmetry is deliberate. Caret movement is inherently repetitive: as a code it cost four
+ * presses *per character moved*, so walking back five characters was twenty presses. As a mode
+ * it is two presses to enter and one per step.
+ *
+ * Both modes are sticky and both leave the same way: a space or `BACK`.
+ */
+enum class Mode {
     TEXT,
     DIGITS,
+    EDIT,
 }
 
 /**
@@ -43,11 +54,10 @@ enum class Layer {
  *
  * It is worth recording why the other answer looked right first. The case for a merged tree was
  * that two trees mean two tables to memorise and a language mode that can sit in the wrong
- * position, where a wrong-language press emits a valid character and the mistake reads as a
- * typo. Both of those are arguments about *memorised* typing. **This keyboard does not assume
- * muscle memory** — the branch guide is treated as always-on, and a user reading the guide
- * cannot make a mode error, because the guide shows the branches of the tree actually in force.
- * So neither argument survives, and the decision falls to presses alone.
+ * position. Both are arguments about *memorised* typing. **This keyboard does not assume muscle
+ * memory** — the branch guide is treated as always-on, and a user reading the guide cannot make
+ * a mode error, because the guide shows the branches of the tree actually in force. So neither
+ * argument survives, and the decision falls to presses alone.
  *
  * [SHARED] stays for anyone who does stop reading the guide, where the reasoning above starts
  * to apply again.
@@ -65,32 +75,41 @@ enum class TreeScope {
  * is what stops the measured method and the typed method from being two different methods.
  *
  * A missing or unreadable asset falls back to a uniform table over a plain ASCII alphabet.
- * That still types — every symbol keeps a code — but the codes are worthless, the whole point
- * of the method being the frequency ordering, so the strip says so rather than hiding it.
- * Polish diacritics are absent in that state, which is another reason to make it visible.
+ * That still types — every character keeps a code — but the codes are worthless, the whole
+ * point of the method being the frequency ordering, so the strip says so rather than hiding it.
  */
 class TreeRepository(private val context: Context) {
 
     private val tables = HashMap<Language, FrequencyTable>()
     private val trees = HashMap<Key, CodeTree>()
 
-    /** One tree for the digit layer whatever the language: ten digits look the same. */
-    val digitTree: CodeTree by lazy { CodeTree.of(Weights.digitLayer()) }
+    /**
+     * The digit layer, one tree whatever the language: ten digits look the same everywhere. Its
+     * reserved branch is shorter — space and delete — because the way out is a space or `BACK`
+     * and a third route would only be another thing to read.
+     */
+    val digitTree: CodeTree by lazy {
+        CodeTree.withControlBranch(Weights.digitLayer(), Weights.DIGIT_CONTROL_BRANCH)
+    }
 
     fun textTree(language: Language, set: CharacterSet): CodeTree =
-        trees.getOrPut(Key(listOf(language), set, shared = false)) {
-            CodeTree.of(Weights.text(tableFor(language), set))
+        trees.getOrPut(Key(listOf(language), set)) {
+            CodeTree.withControlBranch(
+                Weights.text(tableFor(language), set),
+                Weights.CONTROL_BRANCH,
+            )
         }
 
     /**
-     * One tree over every enabled language's counts summed. Adding a language therefore
-     * changes the codes, which is the honest consequence of one table covering them all and
-     * the reason the setting carries a warning.
+     * One tree over every enabled language's counts summed. Adding a language therefore changes
+     * the codes, which is the honest consequence of one table covering them all.
      */
     fun sharedTree(languages: List<Language>, set: CharacterSet): CodeTree =
-        trees.getOrPut(Key(languages, set, shared = true)) {
-            val merged = FrequencyTable.merge(languages.map { tableFor(it) })
-            CodeTree.of(Weights.text(merged, set, Weights.SHARED_FUNCTIONS))
+        trees.getOrPut(Key(languages, set)) {
+            CodeTree.withControlBranch(
+                Weights.text(FrequencyTable.merge(languages.map { tableFor(it) }), set),
+                Weights.CONTROL_BRANCH,
+            )
         }
 
     fun isTrained(language: Language): Boolean = tableFor(language) !== FALLBACK
@@ -105,13 +124,9 @@ class TreeRepository(private val context: Context) {
         }
     }
 
-    // The scope belongs in the key: one enabled language makes the two trees agree on their
-    // language list while still differing, because the shared tree drops the language switch.
-    private data class Key(
-        val languages: List<Language>,
-        val set: CharacterSet,
-        val shared: Boolean,
-    )
+    // The language list is the key, so one enabled language and the shared tree over that same
+    // language are the same tree — which they now are, since nothing is dropped from either.
+    private data class Key(val languages: List<Language>, val set: CharacterSet)
 
     private companion object {
         const val TAG = "H4"

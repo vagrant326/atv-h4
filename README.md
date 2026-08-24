@@ -26,10 +26,10 @@ have no number keys and cannot run the companion project
 [`atv-letterwise`](https://github.com/vagrant326/atv-letterwise) at all.
 
 There is no long press anywhere in the typing path either. Deleting, moving the caret,
-switching language and reaching the digits are all *codes*, not keys: they sit in the same tree
-as the letters and are reached the same way. Every assignable button is optional, including the
-digit one — and a field that asks for numbers switches to the digit layer by itself, so nothing
-about digits depends on having a spare key.
+switching language and reaching the digits all live on the d-pad: two of them in the reserved
+`UP` branch, two inside the edit mode. Every assignable button is optional, including the digit
+one — and a field that asks for numbers switches to the digit layer by itself, so nothing about
+digits depends on having a spare key.
 
 `BACK` is the one non-d-pad key that is load-bearing, for exactly two things: abandoning a
 half-finished character and closing the keyboard. Abandoning **cannot** be a code — you are
@@ -41,9 +41,10 @@ this is safe, but it is worth stating rather than hiding inside the claim of d-p
 
 | Input | Action |
 |---|---|
-| `DPAD_UP` / `LEFT` / `RIGHT` / `DOWN` | The four code symbols |
+| `DPAD_LEFT` / `RIGHT` / `DOWN` | The code symbols — every character is a run of these |
+| `DPAD_UP` | Reserved: space, delete, digits, edit mode |
 | `DPAD_CENTER` | Submit — whatever the field's own action is |
-| `BACK` | Abandons a half-finished character; closes the keyboard when there is nothing to abandon |
+| `BACK` | In order: drop a half-finished character, leave a mode, close the keyboard |
 
 The guide above the field shows what each direction leads to **from where you are now**, so
 you never have to know a code in advance: press towards the letter you want and read the next
@@ -55,53 +56,72 @@ treated as permanently on, it is sized so the first press is never a guess, and 
 in the tree is settled on presses rather than on what would be easier to remember. If your
 thumb does learn it, you turn the guide off and get the screen space back.
 
+### `UP` is reserved
+
+The first press is not a code symbol. `UP` opens a fixed branch, and it never moves:
+
+```
+↑↑ space     ↑↓ delete     ↑← digits     ↑→ edit mode
+```
+
+Four functions, two presses each, in the same place forever. The reason is not comfort. **None
+of delete, the digit layer or the edit mode has a frequency in any corpus** — no text records
+how often somebody fixes a typo or enters a PIN — so letting Huffman place them means placing
+them from numbers that were invented. Reserving a branch replaces three fabricated weights with
+one structural decision.
+
+It costs the letters a quarter of their two-press codes, measured at **+4.5% of all presses**,
+and buys a second thing besides honesty: the long tail used to be piled into one direction
+while the other three resolved in two presses. Now it is spread over three comparable branches.
+
 ### The code table, English
 
-Straight out of `./gradlew :core:codes -Planguage=en`:
+The other three directions carry the characters. Straight out of `./gradlew :core:codes
+-Planguage=en`:
 
 ```
-↑↑ space   ↑← a   ↑→ d   ↑↓ e
-←↑ h       ←← i   ←→ l   ←↓ n
-→↑ o       →← r   →→ s   →↓ t
-↓↑↑ delete   ↓↑← digits   …and three to six presses for the rest
+←→ a   ←↓ e   →← i   →→ n   →↓ r
+↓↑ l   ↓← o   ↓→ s   ↓↓ t          …and three to six presses for the rest
 ```
 
-Twelve characters on two presses, nothing on one. Expected **2.316 presses per character** for
-English, **2.421** for Polish, deepest code **6** in both. The full table is in the app, under
-Settings → Codes, because on this keyboard the table *is* the interface and a reference you can
-reach from the sofa is part of the product.
+Expected **2.424 presses per character** for English, **2.528** for Polish, deepest code **6**
+in both. The full table is in the app, under Settings → Codes, because on this keyboard the
+table *is* the interface and a reference you can reach from the sofa is part of the product.
 
 Space gets two presses, not one, and that is the corpus talking. At 18.9% — its share in
 running speech — Huffman gives it one press and a quarter of the whole code space. But a TV
 query is one to three words: space is **8.9%** of the characters in the real query corpus, and
-seven of nineteen queries contain no space at all. Fitted to that, space earns two presses, the
-first press opens into a branch instead of a leaf, and the number of characters reachable in
-two presses doubles from eight to twelve. Details in `docs/20-h4writer.md §8`.
+seven of nineteen queries contain no space at all. Once the tables were fitted to that, space
+stopped earning a one-press code on its own — which is what freed `UP` to be reserved at all.
+Details in `docs/20-h4writer.md §8`.
 
-### Everything is a code
+### The edit mode
 
-| Function | Cost |
+Caret movement is not a code. As a code it cost four presses **per character moved**, so
+walking back five characters was twenty presses — and moving the caret is inherently
+repetitive. So `↑→` enters a mode where a direction does one thing for one press:
+
+| In edit mode | |
 |---|---|
-| delete | 3 presses |
-| digit layer | 3 presses in, 3 back |
-| caret left / right | 4 presses |
-| language switch | 5 presses |
+| `←` / `→` | move the caret one character |
+| `↑` | delete |
+| `↓` | language list |
+| `BACK` | back to typing |
 
-Rare things pay for being rare, which is the method working as intended. If your remote has
-a spare button you can put delete on it (Settings → Buttons) and pay one press instead of
-three — worth doing, because deleting is the correction you make most.
+Walking back five characters and deleting: **8 presses instead of 21**. The language switch
+lives here rather than in the reserved branch because you change language once a session and
+fix a typo once a word.
 
 ### Digits
 
-Digits are in the main tree, at four to six presses each. For a *run* of them — a PIN, a
-pairing code, the seven digits of a Downloader shortcode — there is a second layer where digits
-cost two presses and punctuation three. A field that declares itself numeric **opens in that
-layer by itself**; otherwise it is three presses away, and a button for it is optional like
-everything else.
+Digits are **not** in the main tree at all. They live in the second layer, where every digit is
+two presses, and `↑←` gets you there in two. The layer is **sticky**: it stays until you press
+`BACK` or type a space, and a space inside it both types itself and leaves — so `blade runner
+2049 remastered` pays for going in and nothing for coming back.
 
-A seven-digit sideload code therefore costs 3 + 14 = 17 presses. The layer switch is the one
-weight in the frequency table that is openly a policy floor rather than an estimate — at its
-honest frequency it sank to five presses, which made that code cost 19.
+A seven-digit sideload code therefore costs 2 + 14 = **16 presses**. A field that declares
+itself numeric opens in the layer by itself, and a button for it is optional like every other
+button here.
 
 ### Diacritics
 
@@ -122,19 +142,19 @@ titles per language:
 
 | | Polish | English |
 |---|---|---|
-| One tree per language | **2.275** | **2.257** |
-| One tree for both | 2.298 | 2.285 |
+| One tree per language | **2.395** | **2.363** |
+| One tree for both | 2.395 | 2.388 |
 
-About 1% either way, consistently in the same direction. The merged tree is available under
-Settings → Code table, and there is a real case for it — but it is a case about *memorised*
-typing: one table to learn, and no language mode that can sit in the wrong position emitting
-valid-but-wrong characters. Since nothing here assumes memorisation, and a user reading the
-guide cannot make a mode error at all, the decision falls to presses.
+The merged tree is available under Settings → Code table, and there is a real case for it — but
+it is a case about *memorised* typing: one table to learn, and no language mode that can sit in
+the wrong position emitting valid-but-wrong characters. Since nothing here assumes memorisation,
+and a user reading the guide cannot make a mode error at all, the decision falls to presses.
 
-For the record, the two per-language trees have only about **20% of their codes in common**,
-even with the assignment pinned so they agree wherever their code lengths allow — which costs
-no presses at all, and beats ordering by frequency. So if you do stop reading the guide, switch
-to the merged tree; the argument reverses at that point.
+For the record, the two per-language trees have **32% of their codes in common** — the reserved
+branch is identical by construction, and the rest is pinned so the languages agree wherever
+their code lengths allow, which costs no presses at all and beats ordering by frequency (19%).
+If you do stop reading the guide, switch to the merged tree; the argument reverses at that
+point.
 
 ## Netflix and YouTube need one thing set up
 

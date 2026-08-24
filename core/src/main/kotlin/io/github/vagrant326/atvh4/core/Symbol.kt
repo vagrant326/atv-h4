@@ -1,15 +1,17 @@
 package io.github.vagrant326.atvh4.core
 
 /**
- * One leaf of the code tree.
+ * One leaf of the code tree: a character, or one of the three functions that have a code.
  *
- * Functions are leaves like any character, which is the whole of H4-Writer's answer to a
- * remote that has nothing but a d-pad: if a thing needs a button it does not get one, it gets
- * a code. Backspace, caret movement and the two mode switches are therefore in the frequency
- * table, competing for short codes on the same terms as the letters.
+ * The list of functions is short on purpose. Delete, the digit layer and the edit mode sit in
+ * the reserved branch at a fixed two presses each; caret movement and the language switch are
+ * not here at all, because they live inside the edit mode where a direction means one thing and
+ * costs one press. Nothing in this file has an invented frequency, which is the whole point:
+ * no corpus records how often somebody corrects a typo or enters a PIN, so anything placed by
+ * Huffman would have been placed from a number that was made up.
  *
- * [label] is for tests, the bench output and the printed code table. What the strip shows
- * comes from string resources instead, because these names are read by a user.
+ * [label] is for tests, the bench output and the printed code table. What the strip shows comes
+ * from string resources instead, because those names are read by a user.
  */
 sealed interface Symbol {
 
@@ -21,12 +23,12 @@ sealed interface Symbol {
 
     enum class Function(override val label: String) : Symbol {
         BACKSPACE("DEL"),
-        CARET_LEFT("<"),
-        CARET_RIGHT(">"),
-        LANGUAGE("LANG"),
 
-        /** Between letters and the digit layer, in both directions. */
+        /** To the digit layer and back. */
         LAYER("#"),
+
+        /** To the edit mode: caret, delete, language. */
+        EDIT("EDIT"),
     }
 
     companion object {

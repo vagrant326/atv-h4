@@ -130,11 +130,7 @@ class CodesActivity : Activity() {
         val languages = preferences.enabledLanguages
         val tree = if (shared) trees.sharedTree(languages, set) else trees.textTree(language, set)
         val weights = if (shared) {
-            Weights.text(
-                FrequencyTable.merge(languages.map { trees.tableFor(it) }),
-                set,
-                Weights.SHARED_FUNCTIONS,
-            )
+            Weights.text(FrequencyTable.merge(languages.map { trees.tableFor(it) }), set)
         } else {
             Weights.text(trees.tableFor(language), set)
         }
@@ -202,10 +198,8 @@ class CodesActivity : Activity() {
             if (symbol.value == ' ') getString(R.string.codes_space) else symbol.value.toString()
 
         Symbol.Function.BACKSPACE -> getString(R.string.codes_backspace)
-        Symbol.Function.CARET_LEFT -> getString(R.string.codes_caret_left)
-        Symbol.Function.CARET_RIGHT -> getString(R.string.codes_caret_right)
-        Symbol.Function.LANGUAGE -> getString(R.string.codes_language_symbol)
         Symbol.Function.LAYER -> getString(R.string.codes_layer)
+        Symbol.Function.EDIT -> getString(R.string.codes_edit)
     }
 
     /** One row of the four-column grid: the symbol, then the presses that produce it. */

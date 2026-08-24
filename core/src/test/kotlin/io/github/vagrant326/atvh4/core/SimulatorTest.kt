@@ -7,62 +7,85 @@ import org.junit.jupiter.api.Test
 class SimulatorTest {
 
     private val table = FrequencyTable.of(SAMPLE)
+    private val digits = CodeTree.withControlBranch(
+        Weights.digitLayer(),
+        Weights.DIGIT_CONTROL_BRANCH,
+    )
+
+    private fun text(set: CharacterSet) = CodeTree.withControlBranch(
+        Weights.text(table, set),
+        Weights.CONTROL_BRANCH,
+    )
 
     @Test
     fun `the cost of a string is the sum of its code lengths`() {
-        val tree = CodeTree.of(Weights.text(table, CharacterSet.FULL))
+        val tree = text(CharacterSet.FULL)
         val target = "the fox"
         val expected = target.sumOf { requireNotNull(tree.codeOf(Symbol.Character(it))).size }
 
-        val result = Simulator(tree).run(target)
+        val result = Simulator(tree, digits).run(target)
 
         assertEquals(target.length, result.characters)
         assertEquals(expected, result.codePresses)
         assertEquals(0, result.layerPresses, "nothing here needs the digit layer")
     }
 
-    /**
-     * The letters-and-space tree cannot type an apostrophe at all, so charging the layer round
-     * trip is what keeps its KSPC comparable with the full tree's. Without it the shorter tree
-     * would win every comparison by having a smaller alphabet.
-     */
-    @Test
-    fun `reaching a character outside the text tree costs the layer switch`() {
-        val letters = CodeTree.of(Weights.text(table, CharacterSet.LETTERS))
-        val digits = CodeTree.of(Weights.digitLayer())
-        val switch = requireNotNull(letters.codeOf(Symbol.Function.LAYER)).size
-        val back = requireNotNull(digits.codeOf(Symbol.Function.LAYER)).size
-
-        val result = Simulator(letters, digits).run("a7a")
-
-        assertEquals(switch + back, result.layerPresses)
-    }
-
     @Test
     fun `a run of digits pays for one switch, not one per digit`() {
-        val letters = CodeTree.of(Weights.text(table, CharacterSet.LETTERS))
-        val digits = CodeTree.of(Weights.digitLayer())
+        val tree = text(CharacterSet.FULL)
+        val entry = requireNotNull(tree.codeOf(Symbol.Function.LAYER)).size
 
-        val one = Simulator(letters, digits).run("a7")
-        val seven = Simulator(letters, digits).run("a8662742")
+        val one = Simulator(tree, digits).run("a7")
+        val seven = Simulator(tree, digits).run("a8662742")
 
+        assertEquals(entry, one.layerPresses)
         assertEquals(one.layerPresses, seven.layerPresses)
     }
 
+    /**
+     * The layer is sticky and a space is its own way out, so a title with digits in the middle
+     * pays for going in and nothing for coming back — the space was going to be typed anyway.
+     */
     @Test
-    fun `the full tree costs more per letter and needs no layer switch`() {
-        val letters = CodeTree.of(Weights.text(table, CharacterSet.LETTERS))
-        val full = CodeTree.of(Weights.text(table, CharacterSet.FULL))
-        val target = "the quick brown fox"
+    fun `a space leaves the digit layer without costing a switch`() {
+        val tree = text(CharacterSet.FULL)
+        val entry = requireNotNull(tree.codeOf(Symbol.Function.LAYER)).size
 
-        val short = Simulator(letters).run(target)
-        val long = Simulator(full).run(target)
+        val result = Simulator(tree, digits).run("blade runner 2049 remastered")
 
-        assertTrue(
-            short.totalPresses <= long.totalPresses,
-            "the smaller alphabet cost more: ${short.totalPresses} against ${long.totalPresses}",
-        )
-        assertEquals(0, Simulator(full).run("don't 8662742").layerPresses)
+        assertEquals(entry, result.layerPresses, "leaving should have been free")
+    }
+
+    /** Anything other than a space leaves through BACK, which is one real press. */
+    @Test
+    fun `leaving the layer for a letter costs one press`() {
+        val tree = text(CharacterSet.FULL)
+        val entry = requireNotNull(tree.codeOf(Symbol.Function.LAYER)).size
+
+        val result = Simulator(tree, digits).run("a7a")
+
+        assertEquals(entry + 1, result.layerPresses)
+    }
+
+    /**
+     * Charging the round trip is what keeps the two character sets comparable. Without it the
+     * smaller alphabet would win every comparison by being unable to type an apostrophe.
+     */
+    @Test
+    fun `punctuation costs a layer trip when the tree has no room for it`() {
+        val letters = text(CharacterSet.LETTERS)
+        val full = text(CharacterSet.FULL)
+
+        assertTrue(Simulator(letters, digits).run("don't").layerPresses > 0)
+        assertEquals(0, Simulator(full, digits).run("don't").layerPresses)
+    }
+
+    @Test
+    fun `space is two presses in both trees`() {
+        val tree = text(CharacterSet.FULL)
+
+        assertEquals(2, requireNotNull(tree.codeOf(Symbol.Character(' '))).size)
+        assertEquals(2, requireNotNull(digits.codeOf(Symbol.Character(' '))).size)
     }
 
     private companion object {

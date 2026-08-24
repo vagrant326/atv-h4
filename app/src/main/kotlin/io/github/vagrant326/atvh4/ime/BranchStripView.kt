@@ -18,8 +18,7 @@ import io.github.vagrant326.atvh4.R
 import io.github.vagrant326.atvh4.core.Direction
 import io.github.vagrant326.atvh4.core.Node
 import io.github.vagrant326.atvh4.core.Symbol
-import io.github.vagrant326.atvh4.model.Language
-import io.github.vagrant326.atvh4.model.Layer
+import io.github.vagrant326.atvh4.model.Mode
 import io.github.vagrant326.atvh4.model.TreeScope
 import io.github.vagrant326.atvh4.settings.HintMode
 
@@ -28,12 +27,13 @@ import io.github.vagrant326.atvh4.settings.HintMode
  * user is now*, rather than the whole tree.
  *
  * This is the one piece of UI in the programme that decides whether its keyboard is usable at
- * all on the first attempt. A Huffman code is arbitrary — nothing about it can be recalled
- * from a phone, and a TV remote has nothing printed on it to help — so without this the first
- * session is guesswork. It is also the piece the user is meant to stop needing: an expert
- * types without looking, which is why it can be turned off, and why it does not repeat the
- * text being typed. The field already shows that, and a copy here would cost a row of search
- * results, the scarcest thing on a TV screen.
+ * all on the first attempt. A Huffman code is arbitrary — nothing about it can be recalled from
+ * a phone, and a TV remote has nothing printed on it to help — and this build does not assume
+ * the user will ever memorise it. So the guide is sized so the *first* press is never a guess,
+ * and it can still be turned off by anyone whose thumb has learnt the tree anyway.
+ *
+ * It deliberately does not repeat the text being typed. The field already shows that, and a
+ * copy here would cost a row of search results, the scarcest thing on a TV screen.
  */
 @SuppressLint("ViewConstructor")
 class BranchStripView(context: Context) : LinearLayout(context) {
@@ -74,9 +74,9 @@ class BranchStripView(context: Context) : LinearLayout(context) {
     )
 
     /**
-     * Assigned keys, named rather than drawn into the cross. The cross is the four code
-     * symbols and nothing else; putting a function in one of its cells would say that the
-     * function is one of them.
+     * Assigned keys, named rather than drawn into the cross. The cross is what the four
+     * directions do right now; putting an optional hardware key in one of its cells would say
+     * that the key is one of them.
      */
     private val hints = LinearLayout(context).apply {
         orientation = VERTICAL
@@ -130,22 +130,33 @@ class BranchStripView(context: Context) : LinearLayout(context) {
             return
         }
 
-        val branches = state.coder.branches
+        // The edit mode is not a tree: one press, one action. So the guide names the actions
+        // rather than drawing branches, which is also the honest picture of what changed.
+        val labels = if (state.mode == Mode.EDIT) {
+            Direction.entries.associateWith { editLabel(it) }
+        } else {
+            val branches = state.coder.branches
+            Direction.entries.associateWith { branch(branches[it.ordinal]) }
+        }
+
         if (inlineHint.visibility == VISIBLE) {
-            inlineHint.text = Direction.entries.joinToString("   ") { direction ->
-                "${direction.arrow}${branch(branches[direction.ordinal])}"
-            }
+            inlineHint.text = Direction.entries.joinToString("   ") { "${it.arrow}${labels[it]}" }
             return
         }
 
         for (direction in Direction.entries) {
-            val child = branches[direction.ordinal]
             val cell = cells.getValue(direction)
-            cell.text = "${direction.arrow} ${branch(child)}"
-            cell.setTextColor(if (child is Node.Leaf) ACCENT else DIM)
+            cell.text = "${direction.arrow} ${labels[direction]}"
+            val resolved = state.mode == Mode.EDIT ||
+                state.coder.branches[direction.ordinal] is Node.Leaf
+            cell.setTextColor(if (resolved) ACCENT else DIM)
         }
-        centre.text = state.coder.path.joinToString("") { it.arrow }
-            .ifEmpty { context.getString(R.string.strip_ready) }
+        centre.text = if (state.mode == Mode.EDIT) {
+            context.getString(R.string.strip_editing)
+        } else {
+            state.coder.path.joinToString("") { it.arrow }
+                .ifEmpty { context.getString(R.string.strip_ready) }
+        }
         languageHint.visibility = if (state.scope == TreeScope.SHARED) GONE else VISIBLE
         languageValue.text = keyLabel(
             state.customKeys.language,
@@ -161,6 +172,15 @@ class BranchStripView(context: Context) : LinearLayout(context) {
         )
     }
 
+    private fun editLabel(direction: Direction): String = context.getString(
+        when (direction) {
+            Direction.LEFT -> R.string.strip_edit_left
+            Direction.RIGHT -> R.string.strip_edit_right
+            Direction.UP -> R.string.strip_edit_delete
+            Direction.DOWN -> R.string.strip_edit_language
+        }
+    )
+
     /** A leaf names its symbol; a branch names the heaviest symbols underneath it. */
     private fun branch(node: Node?): String = when (node) {
         null -> context.getString(R.string.strip_dead_branch)
@@ -169,9 +189,9 @@ class BranchStripView(context: Context) : LinearLayout(context) {
     }
 
     /**
-     * Short enough to sit in a preview beside five others. Not translated: these stand for
-     * keys, and a two-letter abbreviation that changes with the system language would be a
-     * different symbol to learn per locale on a keyboard whose whole cost is memorisation.
+     * Short enough to sit in a preview beside eleven others. Not translated: these stand for
+     * keys, and a two-letter abbreviation that changed with the system language would be a
+     * different symbol to learn per locale.
      */
     private fun display(symbol: Symbol): String = when (symbol) {
         is Symbol.Character ->
@@ -179,10 +199,8 @@ class BranchStripView(context: Context) : LinearLayout(context) {
             else symbol.value.toString()
 
         Symbol.Function.BACKSPACE -> context.getString(R.string.symbol_backspace)
-        Symbol.Function.CARET_LEFT -> context.getString(R.string.symbol_caret_left)
-        Symbol.Function.CARET_RIGHT -> context.getString(R.string.symbol_caret_right)
-        Symbol.Function.LANGUAGE -> context.getString(R.string.symbol_language)
         Symbol.Function.LAYER -> context.getString(R.string.symbol_layer)
+        Symbol.Function.EDIT -> context.getString(R.string.symbol_edit)
     }
 
     private fun statusRow(state: StripState): CharSequence {
@@ -222,8 +240,18 @@ class BranchStripView(context: Context) : LinearLayout(context) {
             context.getString(R.string.strip_no_table, active)
         }
         val text = SpannableStringBuilder(dim(tag)).append(dim("   "))
-        if (state.layer == Layer.DIGITS) {
-            text.append(accent(context.getString(R.string.strip_digit_layer))).append(dim("   "))
+        when (state.mode) {
+            Mode.DIGITS -> text.append(accent(context.getString(R.string.strip_digit_layer)))
+                .append(dim("   "))
+
+            Mode.EDIT -> text.append(accent(context.getString(R.string.strip_edit_mode)))
+                .append(dim("   "))
+
+            Mode.TEXT -> Unit
+        }
+
+        if (state.mode == Mode.EDIT) {
+            return text.append(dim(context.getString(R.string.strip_edit_exit)))
         }
 
         val path = state.coder.path
@@ -252,8 +280,7 @@ class BranchStripView(context: Context) : LinearLayout(context) {
 
     private fun buildCross(): View {
         // Wide enough for a full first-press branch — about a dozen symbols — because a
-        // truncated branch forces a guess, and this keyboard assumes the guide is being read
-        // rather than recalled.
+        // truncated branch forces a guess, and nothing here assumes the codes are known.
         val cross = LinearLayout(context).apply {
             orientation = VERTICAL
             layoutParams = LayoutParams(dp(432), LayoutParams.WRAP_CONTENT)

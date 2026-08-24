@@ -11,17 +11,17 @@ import io.github.vagrant326.atvh4.core.Weights
 import java.io.File
 
 /**
- * Measures KSPC over the query corpus, using the same tree construction the keyboard runs.
+ * Measures KSPC over a query corpus, using the same tree construction the keyboard runs.
  *
- * There is no model column here and nothing to compare against a uniform baseline: the method
- * is deterministic, so the only thing that can differ between configurations is the frequency
- * table the tree was built from. That is what this reports — one tree per language against a
- * single merged tree, and the full character set against letters and space.
+ * There is no model column and nothing to compare against a uniform baseline: the method is
+ * deterministic, so the only things that can differ are the frequency table the tree was built
+ * from and which characters it carries. That is what this reports — one tree per language
+ * against a single merged tree, and letters-with-punctuation against letters alone.
  *
- * The pinned code assignment does not appear as a KSPC row, because it cannot change one:
- * it reorders codes within a length class and leaves every length alone. What it changes is
- * the agreement figure at the bottom, which is the cost of per-language trees being paid
- * down. Reporting it as a KSPC row would suggest a trade that is not there.
+ * The pinned code assignment does not appear as a KSPC row, because it cannot change one: it
+ * reorders codes within a length class and leaves every length alone. What it changes is the
+ * agreement figure at the bottom. Reporting it as a KSPC row would suggest a trade that is not
+ * there.
  *
  * Lives in the test source set so it stays out of the APK. Run with `./gradlew :core:bench`.
  */
@@ -33,6 +33,9 @@ private class Report(val label: String) {
     var merged: TrialResult = TrialResult.EMPTY
     val worst = ArrayList<Pair<String, Double>>()
 }
+
+private fun textTree(table: FrequencyTable, set: CharacterSet, ordering: Ordering = Ordering.PINNED) =
+    CodeTree.withControlBranch(Weights.text(table, set), Weights.CONTROL_BRANCH, ordering = ordering)
 
 fun main(arguments: Array<String>) {
     val options = arguments.toList().chunked(2)
@@ -54,16 +57,11 @@ fun main(arguments: Array<String>) {
         return
     }
 
-    val digits = CodeTree.of(Weights.digitLayer())
+    val digits = CodeTree.withControlBranch(Weights.digitLayer(), Weights.DIGIT_CONTROL_BRANCH)
     val mergedTable = FrequencyTable.merge(tables.values)
-    val mergedTree = CodeTree.of(Weights.text(mergedTable, CharacterSet.FULL))
-
-    val trees = tables.mapValues { (_, table) ->
-        CodeTree.of(Weights.text(table, CharacterSet.FULL))
-    }
-    val letterTrees = tables.mapValues { (_, table) ->
-        CodeTree.of(Weights.text(table, CharacterSet.LETTERS))
-    }
+    val mergedTree = textTree(mergedTable, CharacterSet.FULL)
+    val trees = tables.mapValues { (_, table) -> textTree(table, CharacterSet.FULL) }
+    val letterTrees = tables.mapValues { (_, table) -> textTree(table, CharacterSet.LETTERS) }
 
     val reports = linkedMapOf("pl" to Report("Polish"), "en" to Report("English"))
 
@@ -71,7 +69,7 @@ fun main(arguments: Array<String>) {
     for (query in queries) {
         // A query carrying Polish letters is typed on the Polish tree whatever the row says,
         // and "piątek the series" is exactly that case.
-        val language = if (query.text.any { it !in EN_LETTERS }) "pl" else query.language
+        val language = if (query.text.any { it !in EN_TYPABLE }) "pl" else query.language
         val target = if (language == "pl") "pl" else "en"
         val report = reports.getValue(target)
 
@@ -115,25 +113,26 @@ fun main(arguments: Array<String>) {
     }
 
     println()
-    println("expected presses per character over the training distribution")
+    println("the tree, per language")
     for ((language, table) in tables) {
+        val tree = trees.getValue(language)
         val weights = Weights.text(table, CharacterSet.FULL)
         println(
-            "  %-8s own tree %.3f   merged tree %.3f   deepest code %d".format(
-                language,
-                trees.getValue(language).meanCodeLength(weights),
-                mergedTree.meanCodeLength(weights),
-                trees.getValue(language).depth,
-            )
+            "  %-4s %.3f presses per character, deepest %d, %d characters within two presses"
+                .format(
+                    language,
+                    tree.meanCodeLength(weights),
+                    tree.depth,
+                    tree.symbols.count { requireNotNull(tree.codeOf(it)).size <= 2 },
+                )
         )
     }
 
-    // What the pinned assignment buys, which is the whole argument for running two trees.
+    // What the pinned assignment buys. It cannot change a code length, so it never appears in
+    // the KSPC table above.
     val pinned = trees.getValue("pl").agreementWith(trees.getValue("en"))
-    val byFrequency = tables.mapValues { (_, table) ->
-        CodeTree.of(Weights.text(table, CharacterSet.FULL), Ordering.FREQUENCY)
-    }
-    val loose = byFrequency.getValue("pl").agreementWith(byFrequency.getValue("en"))
+    val loose = textTree(tables.getValue("pl"), CharacterSet.FULL, Ordering.FREQUENCY)
+        .agreementWith(textTree(tables.getValue("en"), CharacterSet.FULL, Ordering.FREQUENCY))
     println()
     println("shared codes identical between the Polish and English trees")
     println("  pinned by rank    %.0f%%".format(pinned * 100))
@@ -169,7 +168,7 @@ private fun load(path: String?): FrequencyTable? {
     return file.inputStream().use { FrequencyTable.read(it) }
 }
 
-private val EN_LETTERS: Set<Char> =
+private val EN_TYPABLE: Set<Char> =
     (" abcdefghijklmnopqrstuvwxyz" + Symbol.DIGITS.joinToString("") +
         Symbol.PUNCTUATION.joinToString("")).toSet()
 
