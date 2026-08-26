@@ -6,20 +6,20 @@
     android:viewportHeight="180">
 
     <path
-        android:fillColor="#101014"
+        android:fillColor="@color/logo_plate"
         android:pathData="M0,0h320v180H0z" />
 
     <!-- Four keys, and beside them one character's worth of code: three presses. Which is
          the whole method, and the whole hardware requirement. -->
     <group>
-        <path android:fillColor="#7FD1FF" android:pathData="M78,48h32v28H78z" />
-        <path android:fillColor="#7FD1FF" android:pathData="M42,80h32v28H42z" />
-        <path android:fillColor="#4A6E86" android:pathData="M114,80h32v28h-32z" />
-        <path android:fillColor="#4A6E86" android:pathData="M78,112h32v28H78z" />
-        <path android:fillColor="#E8E8EC" android:pathData="M84,86h20v16H84z" />
+        <path android:fillColor="@color/logo_accent" android:pathData="M78,48h32v28H78z" />
+        <path android:fillColor="@color/logo_accent" android:pathData="M42,80h32v28H42z" />
+        <path android:fillColor="@color/logo_key" android:pathData="M114,80h32v28h-32z" />
+        <path android:fillColor="@color/logo_key" android:pathData="M78,112h32v28H78z" />
+        <path android:fillColor="@color/logo_glyph" android:pathData="M84,86h20v16H84z" />
 
-        <path android:fillColor="#4A6E86" android:pathData="M196,80h28v28h-28z" />
-        <path android:fillColor="#7FD1FF" android:pathData="M232,80h28v28h-28z" />
-        <path android:fillColor="#E8E8EC" android:pathData="M268,80h28v28h-28z" />
+        <path android:fillColor="@color/logo_key" android:pathData="M196,80h28v28h-28z" />
+        <path android:fillColor="@color/logo_accent" android:pathData="M232,80h28v28h-28z" />
+        <path android:fillColor="@color/logo_glyph" android:pathData="M268,80h28v28h-28z" />
     </group>
 </vector>

@@ -6,13 +6,13 @@
     android:viewportHeight="108">
 
     <path
-        android:fillColor="#101014"
+        android:fillColor="@color/logo_plate"
         android:pathData="M0,0h108v108H0z" />
 
     <!-- The four code symbols, arranged as the d-pad they are. -->
-    <path android:fillColor="#7FD1FF" android:pathData="M42,18h24v22H42z" />
-    <path android:fillColor="#7FD1FF" android:pathData="M18,42h22v24H18z" />
-    <path android:fillColor="#4A6E86" android:pathData="M68,42h22v24H68z" />
-    <path android:fillColor="#4A6E86" android:pathData="M42,68h24v22H42z" />
-    <path android:fillColor="#E8E8EC" android:pathData="M46,46h16v16H46z" />
+    <path android:fillColor="@color/logo_accent" android:pathData="M42,18h24v22H42z" />
+    <path android:fillColor="@color/logo_accent" android:pathData="M18,42h22v24H18z" />
+    <path android:fillColor="@color/logo_key" android:pathData="M68,42h22v24H68z" />
+    <path android:fillColor="@color/logo_key" android:pathData="M42,68h24v22H42z" />
+    <path android:fillColor="@color/logo_glyph" android:pathData="M46,46h16v16H46z" />
 </vector>
