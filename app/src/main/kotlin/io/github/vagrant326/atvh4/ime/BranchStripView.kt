@@ -16,6 +16,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import io.github.vagrant326.atvh4.R
 import io.github.vagrant326.atvh4.core.Direction
+import io.github.vagrant326.atvh4.core.LetterCase
 import io.github.vagrant326.atvh4.core.Node
 import io.github.vagrant326.atvh4.core.Symbol
 import io.github.vagrant326.atvh4.model.Mode
@@ -277,6 +278,8 @@ class BranchStripView(context: Context) : LinearLayout(context) {
 
         Symbol.Function.BACKSPACE -> function(R.string.symbol_backspace)
         Symbol.Function.LAYER -> function(R.string.symbol_layer)
+        Symbol.Function.MARKS -> function(R.string.symbol_marks)
+        Symbol.Function.SHIFT -> function(R.string.symbol_shift)
         Symbol.Function.EDIT -> function(R.string.symbol_edit)
     }
 
@@ -323,10 +326,26 @@ class BranchStripView(context: Context) : LinearLayout(context) {
             Mode.DIGITS -> text.append(accent(context.getString(R.string.strip_digit_layer)))
                 .append(dim("   "))
 
+            Mode.MARKS -> text.append(accent(context.getString(R.string.strip_mark_layer)))
+                .append(dim("   "))
+
             Mode.EDIT -> text.append(accent(context.getString(R.string.strip_edit_mode)))
                 .append(dim("   "))
 
             Mode.TEXT -> Unit
+        }
+
+        // Named whenever it is on, in every layer. A press here is invisible until the code
+        // completes, so a capital the user did not ask for arrives looking like a mistyped code
+        // rather than like a mode — the one thing the guide exists to prevent.
+        when (state.letterCase) {
+            LetterCase.LOWER -> Unit
+            LetterCase.ONCE ->
+                text.append(accent(context.getString(R.string.strip_case_once))).append(dim("   "))
+
+            LetterCase.LOCKED ->
+                text.append(accent(context.getString(R.string.strip_case_locked)))
+                    .append(dim("   "))
         }
 
         if (state.mode == Mode.EDIT) {

@@ -219,6 +219,8 @@ class CodesActivity : Activity() {
 
         Symbol.Function.BACKSPACE -> bracketed(R.string.codes_backspace)
         Symbol.Function.LAYER -> bracketed(R.string.codes_layer)
+        Symbol.Function.MARKS -> bracketed(R.string.codes_marks)
+        Symbol.Function.SHIFT -> bracketed(R.string.codes_shift)
         Symbol.Function.EDIT -> bracketed(R.string.codes_edit)
     }
 
