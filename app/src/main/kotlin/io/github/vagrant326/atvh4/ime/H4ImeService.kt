@@ -10,6 +10,7 @@ import io.github.vagrant326.atvh4.core.Caret
 import io.github.vagrant326.atvh4.core.Coder
 import io.github.vagrant326.atvh4.core.CodeTree
 import io.github.vagrant326.atvh4.core.Direction
+import io.github.vagrant326.atvh4.core.LetterCase
 import io.github.vagrant326.atvh4.core.Press
 import io.github.vagrant326.atvh4.core.Symbol
 import io.github.vagrant326.atvh4.model.Language
@@ -44,6 +45,12 @@ class H4ImeService : InputMethodService() {
     private var showLanguageChooser = false
     private var deadPress = false
 
+    /**
+     * Applied where characters are emitted and nowhere else. The tree, the frequency table and
+     * every code in it stay in lower case — `a` and `A` are the same leaf at the same depth.
+     */
+    private var letterCase = LetterCase.LOWER
+
     override fun onCreate() {
         super.onCreate()
         trees = TreeRepository(this)
@@ -63,8 +70,10 @@ class H4ImeService : InputMethodService() {
             language = preferences.activeLanguage
         }
         // Recomputed for every field rather than remembered: a mode entered in a PIN box must
-        // not follow the user into the next search query.
+        // not follow the user into the next search query. The case goes with it, for the same
+        // reason — a lock left on in one box must not follow the user into the next.
         mode = if (wantsDigits(info)) Mode.DIGITS else Mode.TEXT
+        letterCase = LetterCase.LOWER
         coder.use(currentTree())
         moveCaretToEnd(info)
         render()
@@ -193,21 +202,34 @@ class H4ImeService : InputMethodService() {
     private fun emit(symbol: Symbol) {
         when (symbol) {
             is Symbol.Character -> {
-                currentInputConnection?.commitText(symbol.value.toString(), 1)
-                // A space is the digit layer's own way out. It was going to be typed anyway, so
-                // leaving costs nothing — which is most of why the layer is sticky at all.
-                if (symbol.value == ' ' && mode == Mode.DIGITS) {
+                currentInputConnection?.commitText(letterCase.apply(symbol.value).toString(), 1)
+
+                // Only a letter spends a one-off capital. A space is two presses away in the
+                // same branch, so shift-then-space is not a rare sequence, and consuming the
+                // capital on it would take back what the user asked for.
+                if (symbol.value.isLetter()) {
+                    letterCase = letterCase.afterLetter()
+                }
+
+                // A space is a layer's own way out. It was going to be typed anyway, so leaving
+                // costs nothing — which is most of why a layer is sticky at all.
+                if (symbol.value == ' ' && (mode == Mode.DIGITS || mode == Mode.MARKS)) {
                     enterMode(Mode.TEXT)
                 }
             }
 
             Symbol.Function.BACKSPACE -> backspace()
 
-            // Toggles, because the reserved branch is the same in both layers: `↑←` means
-            // "switch layer" wherever you are, rather than "go to digits" in one place and
-            // nothing in the other.
+            // Toggles, because the reserved branch is the same in every layer: `↑←←` means
+            // "digits" wherever you are, rather than "go to digits" in one place and nothing in
+            // the other.
             Symbol.Function.LAYER ->
                 enterMode(if (mode == Mode.DIGITS) Mode.TEXT else Mode.DIGITS)
+
+            Symbol.Function.MARKS ->
+                enterMode(if (mode == Mode.MARKS) Mode.TEXT else Mode.MARKS)
+
+            Symbol.Function.SHIFT -> letterCase = letterCase.next()
 
             Symbol.Function.EDIT -> enterMode(Mode.EDIT)
         }
@@ -342,8 +364,11 @@ class H4ImeService : InputMethodService() {
     }
 
     /** The edit mode has no tree; the text tree stays loaded underneath it. */
-    private fun currentTree(): CodeTree =
-        if (mode == Mode.DIGITS) trees.digitTree else textTree()
+    private fun currentTree(): CodeTree = when (mode) {
+        Mode.DIGITS -> trees.digitTree
+        Mode.MARKS -> trees.markTree
+        else -> textTree()
+    }
 
     private fun textTree(): CodeTree =
         if (preferences.treeScope == TreeScope.SHARED) {
@@ -365,6 +390,7 @@ class H4ImeService : InputMethodService() {
                 customKeys = preferences.customKeys,
                 hasEditor = currentInputConnection != null,
                 mode = mode,
+                letterCase = letterCase,
                 deadPress = deadPress,
             )
         )

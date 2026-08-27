@@ -106,11 +106,32 @@ object Weights {
      * frequency a TV query actually has, so it may as well be somewhere the user can find
      * without reading.
      */
-    val CONTROL_BRANCH: Map<Direction, Symbol> = mapOf(
-        Direction.UP to Symbol.Character(' '),
-        Direction.DOWN to Symbol.Function.BACKSPACE,
-        Direction.LEFT to Symbol.Function.LAYER,
-        Direction.RIGHT to Symbol.Function.EDIT,
+    val CONTROL_BRANCH: Map<Direction, ControlSlot> = mapOf(
+        Direction.UP to ControlSlot.Leaf(Symbol.Character(' ')),
+        Direction.DOWN to ControlSlot.Leaf(Symbol.Function.BACKSPACE),
+
+        /**
+         * `↑←` was the layer switch and is now the branch of everything that changes what the
+         * keys produce: the case, the digits and the marks. That grouping is why nothing else
+         * moved — space, delete and the edit mode are exactly where they were, and the one
+         * position that changed meaning had already been the mode key.
+         *
+         * The bill is a third press for each of the three, digits included, where the digit
+         * layer used to be two. It is paid once per field rather than once per character, and
+         * it is the same price a Huffman leaf would have charged: `corpus/fetch.py` normalises
+         * before writing, so the corpus on disk has no capital in it and there is no measured
+         * frequency for a shift to be placed from — the honest options were structure at three
+         * presses or a re-fetched corpus that would re-measure every published figure.
+         */
+        Direction.LEFT to ControlSlot.Branch(
+            mapOf(
+                Direction.UP to Symbol.Function.SHIFT,
+                Direction.LEFT to Symbol.Function.LAYER,
+                Direction.RIGHT to Symbol.Function.MARKS,
+            )
+        ),
+
+        Direction.RIGHT to ControlSlot.Leaf(Symbol.Function.EDIT),
     )
 
     /**
@@ -123,7 +144,7 @@ object Weights {
      * Filling them with the functions they already have in the text tree costs nothing and
      * removes both.
      */
-    val DIGIT_CONTROL_BRANCH: Map<Direction, Symbol> = CONTROL_BRANCH
+    val DIGIT_CONTROL_BRANCH: Map<Direction, ControlSlot> = CONTROL_BRANCH
 
     /**
      * Letters and punctuation: no functions, no space, no digits. All four live elsewhere.
@@ -166,6 +187,24 @@ object Weights {
      */
     fun digitLayer(): Map<Symbol, Long> =
         (Symbol.DIGITS + listOf('.', ',')).associate { Symbol.Character(it) to DIGIT_WEIGHT }
+
+    /**
+     * The mark layer: every printable mark a QWERTY keyboard carries, all thirty-two.
+     *
+     * All of them rather than the twenty-five the text tree leaves out, so there is one rule —
+     * this layer is the whole set. A layer holding "the marks that did not fit elsewhere" would
+     * be a list nobody could predict the contents of, and the seven that also live in the text
+     * tree cost nothing here: three carrying branches give forty-eight slots at three presses
+     * and thirty-two symbols do not fill them.
+     *
+     * Uniform, for the same reason [digitLayer] is: no corpus records how often somebody types
+     * a brace into a television, and a weight invented for one would be exactly the fabrication
+     * this file exists to have got rid of. What that costs is a mark at two or three presses
+     * inside the layer according to where Huffman happens to put it, rather than according to
+     * anything true about marks.
+     */
+    fun markLayer(): Map<Symbol, Long> =
+        Symbol.MARKS.associate { Symbol.Character(it) to DIGIT_WEIGHT }
 
     /** Arbitrary: only ratios reach Huffman, and with a uniform table there are none. */
     private const val DIGIT_WEIGHT = 1L

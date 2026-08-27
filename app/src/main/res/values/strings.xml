@@ -18,6 +18,8 @@
     <string name="symbol_space" translatable="false">_</string>
     <string name="symbol_backspace" translatable="false">[del]</string>
     <string name="symbol_layer" translatable="false">[123]</string>
+    <string name="symbol_marks" translatable="false">[!@#]</string>
+    <string name="symbol_shift" translatable="false">[Aa]</string>
     <string name="symbol_edit" translatable="false">[edit]</string>
     <string name="update_working" translatable="false">…</string>
     <string name="update_percent" translatable="false">%1$d%%</string>
@@ -88,6 +90,8 @@
     <string name="codes_space">space</string>
     <string name="codes_backspace">delete</string>
     <string name="codes_layer">digits</string>
+    <string name="codes_marks">marks</string>
+    <string name="codes_shift">capitals</string>
     <string name="codes_edit">edit mode</string>
     <plurals name="codes_presses">
         <item quantity="one">%1$d PRESS</item>
@@ -172,7 +176,10 @@
     <string name="strip_nothing_there">no code that way — nothing typed, try another direction</string>
     <string name="strip_ready">start</string>
     <string name="strip_digit_layer">digits</string>
+    <string name="strip_mark_layer">marks</string>
     <string name="strip_edit_mode">edit</string>
+    <string name="strip_case_once" translatable="false">Abc</string>
+    <string name="strip_case_locked" translatable="false">ABC</string>
     <string name="strip_edit_exit">hold for a whole word · back returns to typing</string>
     <string name="strip_editing">edit</string>
     <string name="strip_edit_left">caret ◄</string>

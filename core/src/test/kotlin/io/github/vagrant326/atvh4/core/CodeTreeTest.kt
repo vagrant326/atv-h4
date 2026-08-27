@@ -96,23 +96,38 @@ class CodeTreeTest {
      * that does not move when the corpus does. Nothing here was placed from a frequency,
      * because none of these has one.
      */
+    /**
+     * Two presses for a leaf, three for anything inside the one sub-branch, and every one of
+     * them in a fixed place. The depth is the whole claim: a position that moved with the corpus
+     * would be a position nobody could learn.
+     */
     @Test
-    fun `the reserved branch puts every function two presses away`() {
+    fun `the reserved branch puts every function where it says it does`() {
         val tree = controlTree(SAMPLE)
 
-        for ((direction, symbol) in Weights.CONTROL_BRANCH) {
-            assertEquals(
-                listOf(Direction.UP, direction),
-                tree.codeOf(symbol),
-                symbol.label,
-            )
+        for ((direction, slot) in Weights.CONTROL_BRANCH) {
+            when (slot) {
+                is ControlSlot.Leaf -> assertEquals(
+                    listOf(Direction.UP, direction),
+                    tree.codeOf(slot.symbol),
+                    slot.symbol.label,
+                )
+
+                is ControlSlot.Branch -> for ((inner, symbol) in slot.slots) {
+                    assertEquals(
+                        listOf(Direction.UP, direction, inner),
+                        tree.codeOf(symbol),
+                        symbol.label,
+                    )
+                }
+            }
         }
     }
 
     @Test
     fun `the reserved direction never begins a character code`() {
         val tree = controlTree(SAMPLE)
-        val reserved = Weights.CONTROL_BRANCH.values.toSet()
+        val reserved = Weights.CONTROL_BRANCH.values.flatMap { it.symbols }.toSet()
 
         for (symbol in tree.symbols) {
             if (symbol !in reserved) {
@@ -136,7 +151,7 @@ class CodeTreeTest {
     @Test
     fun `reserving a branch caps the characters at twelve two-press codes`() {
         val tree = controlTree(SAMPLE)
-        val reserved = Weights.CONTROL_BRANCH.values.toSet()
+        val reserved = Weights.CONTROL_BRANCH.values.flatMap { it.symbols }.toSet()
 
         val cheap = tree.symbols
             .filter { it !in reserved }

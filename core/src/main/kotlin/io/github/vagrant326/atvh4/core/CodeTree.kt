@@ -166,7 +166,7 @@ class CodeTree private constructor(
          */
         fun withControlBranch(
             characters: Map<Symbol, Long>,
-            control: Map<Direction, Symbol>,
+            control: Map<Direction, ControlSlot>,
             reserved: Direction = Direction.UP,
             ordering: Ordering = Ordering.PINNED,
         ): CodeTree {
@@ -174,8 +174,15 @@ class CodeTree private constructor(
             require(control.isNotEmpty()) { "a reserved branch with nothing in it wastes a press" }
 
             val codes = LinkedHashMap<Symbol, List<Direction>>()
-            for ((direction, symbol) in control) {
-                codes[symbol] = listOf(reserved, direction)
+            for ((direction, slot) in control) {
+                when (slot) {
+                    is ControlSlot.Leaf -> codes[slot.symbol] = listOf(reserved, direction)
+
+                    is ControlSlot.Branch ->
+                        for ((inner, symbol) in slot.slots) {
+                            codes[symbol] = listOf(reserved, direction, inner)
+                        }
+                }
             }
 
             val arrange = arrangement(ordering)
@@ -185,7 +192,8 @@ class CodeTree private constructor(
                 collect(tree, listOf(carriers[at]), codes, arrange)
             }
 
-            val weights = characters + control.values.associateWith { CONTROL_PREVIEW_WEIGHT }
+            val weights = characters +
+                control.values.flatMap { it.symbols }.associateWith { CONTROL_PREVIEW_WEIGHT }
             return CodeTree(build(codes, weights), codes)
         }
 

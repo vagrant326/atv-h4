@@ -32,6 +32,12 @@ sealed interface Symbol {
         /** To the digit layer and back. */
         LAYER("[123]"),
 
+        /** To the mark layer and back: everything a QWERTY keyboard prints that is not a letter. */
+        MARKS("[!@#]"),
+
+        /** `abc` → `Abc` → `ABC` → `abc`. */
+        SHIFT("[Aa]"),
+
         /** To the edit mode: caret, delete, language. */
         EDIT("[edit]"),
     }
@@ -62,8 +68,20 @@ sealed interface Symbol {
             is Character -> Function.entries.size + symbol.value.code
         }
 
+        /**
+         * The seven marks that live in the text tree, frequency-weighted like any letter. The
+         * same seven the other keyboards in the programme cycle on their `1` key, so the shared
+         * query corpus is typable character for character in every app.
+         */
         val PUNCTUATION: List<Char> = ".,-'&:/".toList()
 
         val DIGITS: List<Char> = "0123456789".toList()
+
+        /**
+         * Every printable mark on a QWERTY keyboard, for the mark layer. Includes the seven in
+         * [PUNCTUATION]: the layer is the whole set rather than the remainder, so there is one
+         * thing to know about where a mark lives.
+         */
+        val MARKS: List<Char> = "`~!@#$%^&*()-_=+[]{}\\|;:'\",.<>/?".toList()
     }
 }

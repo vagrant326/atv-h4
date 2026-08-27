@@ -77,7 +77,9 @@ thumb does learn it, you turn the guide off and get the screen space back.
 The first press is not a code symbol. `UP` opens a fixed branch, and it never moves:
 
 ```
-↑↑ space     ↑↓ delete     ↑← digits     ↑→ edit mode
+↑↑ space     ↑↓ delete     ↑← [modes]     ↑→ edit mode
+
+             ↑←↑ capitals  ↑←← digits     ↑←→ marks
 ```
 
 Four functions, two presses each, in the same place forever. The reason is not comfort. **None
@@ -163,8 +165,18 @@ six, and why neither is a character.
 
 Digits are **not** in the main tree at all. The second layer holds the ten digits plus a full
 stop and a comma — twelve symbols in exactly twelve two-press slots, so **everything there costs
-two presses and no direction pair leads nowhere**. `↑←` gets you there, and `↑←` gets you back:
-the reserved branch is the same four positions in both layers.
+two presses and no direction pair leads nowhere**. `↑←←` gets you there, and `↑←←` gets you
+back: the reserved branch is the same positions in every layer.
+
+### Capitals and marks
+
+`↑←↑` cycles `abc` → `Abc` → `ABC`. The one-off is first because isolated capitals — sentence
+openings, proper nouns — outnumber runs of them, and it spends itself on the letter it
+capitalised, so there is no mode to be left in by accident.
+
+`↑←→` opens the mark layer: every printable mark a QWERTY keyboard carries, all thirty-two
+rather than the twenty-five the text tree leaves out, so the rule is "the layer is the whole
+set" and not a list of leftovers. Sticky and leaves the same way the digit layer does.
 
 The layer is **sticky**: it stays until you press `BACK` or type a space, and a space inside it
 both types itself and leaves — so `blade runner 2049 remastered` pays for going in and nothing

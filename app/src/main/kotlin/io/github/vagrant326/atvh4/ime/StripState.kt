@@ -1,6 +1,7 @@
 package io.github.vagrant326.atvh4.ime
 
 import io.github.vagrant326.atvh4.core.Coder
+import io.github.vagrant326.atvh4.core.LetterCase
 import io.github.vagrant326.atvh4.model.Language
 import io.github.vagrant326.atvh4.model.Mode
 import io.github.vagrant326.atvh4.model.TreeScope
@@ -33,6 +34,12 @@ data class StripState(
      * a code tree, so the guide draws a fixed legend for it rather than branches.
      */
     val mode: Mode,
+    /**
+     * Whether the next letter is a capital. Named on the strip because a press here is invisible
+     * until the code completes, so a case the user did not mean to be in surfaces as a character
+     * that reads like a mistyped code.
+     */
+    val letterCase: LetterCase,
     /**
      * Whether the last press went into unused code space. Shown rather than swallowed: on a
      * method where a press is normally invisible until the code completes, silence is

@@ -42,6 +42,9 @@ enum class Language(
 enum class Mode {
     TEXT,
     DIGITS,
+
+    /** Every printable mark a QWERTY keyboard carries. A code tree like [TEXT] and [DIGITS]. */
+    MARKS,
     EDIT,
 }
 
@@ -92,6 +95,14 @@ class TreeRepository(private val context: Context) {
      */
     val digitTree: CodeTree by lazy {
         CodeTree.withControlBranch(Weights.digitLayer(), Weights.DIGIT_CONTROL_BRANCH)
+    }
+
+    /**
+     * The mark layer, one tree whatever the language: a brace looks the same everywhere. Same
+     * reserved branch again, so `↑←←` means "layer" and `↑←↑` means "case" wherever you are.
+     */
+    val markTree: CodeTree by lazy {
+        CodeTree.withControlBranch(Weights.markLayer(), Weights.DIGIT_CONTROL_BRANCH)
     }
 
     fun textTree(language: Language): CodeTree =

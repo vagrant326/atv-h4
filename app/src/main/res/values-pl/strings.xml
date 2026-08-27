@@ -64,6 +64,8 @@
     <string name="codes_space">spacja</string>
     <string name="codes_backspace">usuwanie</string>
     <string name="codes_layer">cyfry</string>
+    <string name="codes_marks">znaki</string>
+    <string name="codes_shift">wielkie litery</string>
     <string name="codes_edit">tryb edycji</string>
     <plurals name="codes_presses">
         <item quantity="one">%1$d NACIŚNIĘCIE</item>
@@ -149,6 +151,7 @@
     <string name="strip_nothing_there">w tym kierunku nie ma kodu — nic nie wpisano, naciśnij inny</string>
     <string name="strip_ready">start</string>
     <string name="strip_digit_layer">cyfry</string>
+    <string name="strip_mark_layer">znaki</string>
     <string name="strip_edit_mode">edycja</string>
     <string name="strip_edit_exit">przytrzymaj na całe słowo · back wraca do pisania</string>
     <string name="strip_editing">edycja</string>
