@@ -16,6 +16,11 @@ base-4 Huffman code over character frequencies.
 **Status: builds and runs.** Not yet tried on a TV for long enough to say anything about the
 learning curve, which is this method's real risk.
 
+**To install it:** AFTVnews Downloader code **6404268**, or **5556267** for the dev channel. Seven
+digits on the remote beats typing a URL with a grid keyboard — and it beats it by more here than
+anywhere else in the programme, since a URL in four directions is a very long walk.
+[Details and direct links below.](#installing)
+
 ---
 
 ## Hardware requirement
@@ -25,13 +30,12 @@ in existence has them — including Chromecast-with-Google-TV and Shield-class r
 have no number keys and cannot run the companion project
 [`atv-letterwise`](https://github.com/vagrant326/atv-letterwise) at all.
 
-There is no long press in the typing path either — the only hold in the keyboard is the
-word jump inside the edit mode, where nothing is being composed and a repeat cannot commit a
-character. Deleting, moving the caret,
-switching language and reaching the digits all live on the d-pad: two of them in the reserved
-`UP` branch, two inside the edit mode. Every assignable button is optional, including the digit
-one — and a field that asks for numbers switches to the digit layer by itself, so nothing about
-digits depends on having a spare key.
+There is no long press in the typing path either — every hold in the keyboard lives inside the
+edit mode, where nothing is being composed and a repeat cannot commit a character. Deleting,
+moving the caret, switching language and reaching the digits all live on the d-pad: two of them
+in the reserved `UP` branch, two inside the edit mode. Every assignable button is optional,
+including the digit one — and a field that asks for numbers switches to the digit layer by
+itself, so nothing about digits depends on having a spare key.
 
 `BACK` is the one non-d-pad key that is load-bearing, for exactly two things: abandoning a
 half-finished character and closing the keyboard. Abandoning **cannot** be a code — you are
@@ -123,7 +127,7 @@ running speech — Huffman gives it one press and a quarter of the whole code sp
 query is one to three words: space is **8.9%** of the characters in the real query corpus, and
 seven of nineteen queries contain no space at all. Once the tables were fitted to that, space
 stopped earning a one-press code on its own — which is what freed `UP` to be reserved at all.
-Details in `docs/20-h4writer.md §8`.
+Details in the programme's notes on this method.
 
 ### The edit mode
 
@@ -144,22 +148,22 @@ Walking back five characters and deleting: **8 presses instead of 21**. The lang
 lives here rather than in the reserved branch because you change language once a session and
 fix a typo once a word.
 
-Both holds move by a **word, not by a rate**, and that is the only reason they are safe. Android
-repeats a held key about twenty times a second after a 400 ms delay, and a TV query averages
-eleven characters — an accelerating caret crosses the whole field before your thumb reacts,
+All three holds move by a **word, not by a rate**, and that is the only reason they are safe.
+Android repeats a held key about twenty times a second after a 400 ms delay, and a TV query
+averages eleven characters — an accelerating caret crosses the whole field before your thumb reacts,
 while any rate slow enough to aim is no faster than just pressing. One hold is one jump, later
 repeats are swallowed, and the jump stops at a word boundary, so overshoot is impossible rather
 than merely unlikely.
 
-These are the only two holds in the keyboard, and there will not be a third without a
+These are the only holds in the keyboard, and there will not be another without a
 measurement. Making every direction press-or-hold would double the leaf space and cut the code
 from 2.42 actions per character to about 1.62 — but a hold costs roughly two to two and a half
 presses in dwell time, which is exactly the break-even band, and nobody has measured `t_hold` on
 a real remote yet. Meanwhile it would put *timing* inside the code, so too short a hold would
 type a different character, and it would double what the guide has to show at every step.
-`docs/20-h4writer.md §8` has the arithmetic. The rule it leaves behind: **a hold earns its dwell
-time only when it replaces three presses or more**, which is why both of these replace five or
-six, and why neither is a character.
+The programme's notes have the arithmetic. The rule it leaves behind: **a hold earns its dwell
+time only when it replaces three presses or more**, which is why each of these replaces five or
+six, and why none of them is a character.
 
 ### Digits
 
