@@ -13,8 +13,9 @@ nothing to correct.
 This is MacKenzie's H4-Writer (*1 Thumb, 4 Buttons, 20 Words Per Minute*, UIST 2011): a
 base-4 Huffman code over character frequencies.
 
-**Status: builds and runs.** Not yet tried on a TV for long enough to say anything about the
-learning curve, which is this method's real risk.
+**Status: working on a real TV.** What is still untested is the learning curve — how fast the
+tree gets into the thumb — which is this method's real risk and takes more sessions than anyone
+has put in yet.
 
 **To install it:** AFTVnews Downloader code **6404268**, or **5556267** for the dev channel. Seven
 digits on the remote beats typing a URL with a grid keyboard — and it beats it by more here than
