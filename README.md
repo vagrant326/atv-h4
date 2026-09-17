@@ -303,6 +303,9 @@ docker compose -f docker/compose.yaml run --rm -w /work/atv-h4 dev ./gradlew :co
 | `develop` | Release dev | `dev-x.y.z`, installs as **atv-h4 dev** |
 | `main` | Release | `vx.y.z`, installs as **atv-h4** |
 
+Production owns the major and the minor; a dev build keeps them and counts the patch from the
+last production release, so `dev-0.2.7` is the seventh dev build past `v0.2.0`.
+
 **The dev build is a separate application**, not just a separate file: it carries its own
 `applicationId`, so it installs alongside the released one and both appear in the keyboard
 picker. That is the point — an experiment that misbehaves does not take the working keyboard
