@@ -122,7 +122,11 @@ class BranchStripView(context: Context) : LinearLayout(context) {
     init {
         orientation = VERTICAL
         setBackgroundColor(BACKGROUND)
-        setPadding(dp(12), dp(8), dp(12), dp(8))
+        // The Android TV safe area, five percent of each axis. Measured on the television this
+        // was written for: it never displays about eleven dp of its own bottom edge, whatever
+        // Android believes it put there. Eight dp was three short, which is what cost LetterWise
+        // the bottom row of its keypad.
+        setPadding(dp(28), dp(8), dp(28), dp(27))
         addView(statusRow)
         addView(inlineHint)
         addView(guideRow)
